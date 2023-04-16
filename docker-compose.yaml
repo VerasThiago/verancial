@@ -21,6 +21,11 @@ services:
     depends_on:
       - database
 
+  worker-redis:
+    image: "redis"
+    ports:
+      - "6379:6379"
+
   database:
     container_name: database
     image: postgres
