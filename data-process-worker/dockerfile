@@ -1,0 +1,22 @@
+FROM golang:1.18-buster AS build
+
+WORKDIR /app
+
+ENV GO111MODULE=on
+
+COPY ./worker ./worker
+COPY ./shared ./shared
+
+RUN cd shared && go mod download
+
+RUN cd worker && go mod download
+RUN cd worker && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -mod=mod -o /go/bin/worker main.go
+
+FROM alpine
+
+COPY --from=build /go/bin/worker /app/
+COPY --from=build /app/shared/.env /app/.env
+
+WORKDIR /app
+
+CMD ["./worker"]
