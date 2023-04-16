@@ -69,7 +69,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"thiago.veras.machado@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"raw": "{\r\n    \"email\": \"thiago.wortnnes@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -104,7 +104,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"3344007a-70e8-4e92-bd69-e083664dac86\",\r\n    \"cpf\": \"02632782120\"\r\n}",
+							"raw": "{\r\n    \"id\": \"ec3fca09-cdb1-4822-a7b3-3218c7f44d67\",\r\n    \"email\": \"aa@gmail.com\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -150,7 +150,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"userid\": \"ac07c072-8305-4750-a9c2-2d73240765a4\"\r\n}",
+							"raw": "{\r\n    \"id\": \"ec3fca09-cdb1-4822-a7b3-3218c7f44d67\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -181,7 +181,24 @@
 					"name": "New Request",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_ADDRESS}}/api/v0/hello",
+							"host": [
+								"{{API_ADDRESS}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"hello"
+							]
+						}
 					},
 					"response": []
 				}

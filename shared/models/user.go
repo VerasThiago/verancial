@@ -16,7 +16,6 @@ type User struct {
 	ID         string `json:"id" gorm:"primary_key"`
 	Name       string `json:"name"`
 	Email      string `json:"email" gorm:"unique"`
-	CPF        string `json:"cpf" gorm:"unique"`
 	Password   string `json:"password"`
 	IsAdmin    bool   `json:"isadmin" gorm:"default:false"`
 	IsVerified bool   `json:"isverified" gorm:"default:false"`
