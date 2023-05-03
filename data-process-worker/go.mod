@@ -3,7 +3,8 @@ module github.com/verasthiago/verancial/worker
 go 1.18
 
 require (
-	github.com/hibiken/asynq v0.23.0
+	github.com/google/uuid v1.3.0
+	github.com/hibiken/asynq v0.24.0
 	github.com/verasthiago/verancial/shared v0.0.0
 )
 
@@ -19,7 +20,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.2 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect
