@@ -10,5 +10,8 @@ type Repository interface {
 	DeleteUser(userID string) error
 	UpdateUser(user *models.User) error
 
+	CreateTransactionInBatches(transacions []*models.Transaction) error
+
 	MigrateUser(model *models.User) error
+	MigrateTransaction(model *models.Transaction) error
 }
