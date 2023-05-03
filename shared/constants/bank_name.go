@@ -1,8 +1,10 @@
 package constants
 
-type BankName int
+type BankID int
 
 const (
-	ScotiaBank BankName = iota
+	ScotiaBank BankID = iota
+	ScotiaBankCC
+	Nubank
 	Wise
 )
