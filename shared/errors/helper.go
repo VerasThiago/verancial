@@ -24,10 +24,7 @@ const (
 
 var (
 	ERROR_KEY_MAP = map[string]string{
-		"users_email_key":   "email",
-		"users_cpf_key":     "cpf",
-		"tickets_cpf_key":   "cpf",
-		"tickets_email_key": "email",
+		"users_email_key": "email",
 	}
 )
 

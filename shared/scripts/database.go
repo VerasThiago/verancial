@@ -11,7 +11,7 @@ import (
 	postgresrepository "github.com/verasthiago/verancial/shared/repository/postgresRepository"
 )
 
-func MigrateUserDatabase() {
+func MigrateUserModel() {
 	sharedEnvConfigFile := &shared.EnvFileConfig{
 		Path: "../.env",
 		Name: fmt.Sprintf("shared.%+v", shared.GetDeployEnv()),
@@ -25,12 +25,14 @@ func MigrateUserDatabase() {
 
 	db := new(postgresrepository.PostgresRepository).InitFromFlags(sharedFlags)
 
-	db.MigrateUser(&models.User{})
+	if err := db.MigrateUser(&models.User{}); err != nil {
+		panic(err)
+	}
 
-	fmt.Println("Migration done!")
+	fmt.Println("User migration done!")
 }
 
-func MigrateApiDatabase() {
+func MigrateTransactionModel() {
 	sharedEnvConfigFile := &shared.EnvFileConfig{
 		Path: "../.env",
 		Name: fmt.Sprintf("shared.%+v", shared.GetDeployEnv()),
@@ -44,8 +46,9 @@ func MigrateApiDatabase() {
 
 	db := new(postgresrepository.PostgresRepository).InitFromFlags(sharedFlags)
 
-	// Add API migration models
-	fmt.Printf("\ndb %+v\n", db)
+	if err := db.MigrateTransaction(&models.Transaction{}); err != nil {
+		panic(err)
+	}
 
-	fmt.Println("Migration done!")
+	fmt.Println("Transaction migration done!")
 }

@@ -7,6 +7,9 @@ all_build:
 start_api_local:
 	cd api && VERANCIAL_DEPLOY_ENV=local go run main.go
 
+start_worker_local:
+	cd data-process-worker && VERANCIAL_DEPLOY_ENV=local go run main.go
+
 start_api_docker:
 	docker-compose up api
 
@@ -19,8 +22,11 @@ start_login_docker:
 start_db:
 	docker-compose up -d database
 
+start_redis:
+	docker-compose up -d worker-redis
+
 ssh_db:
 	docker exec -it database bash
 
 migrate_db:
-	cd shared/scripts && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateUserDatabase && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateUserDatabase
+	cd shared/scripts && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateUserModel && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateTransactionModel
