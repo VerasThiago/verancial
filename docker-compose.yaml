@@ -35,4 +35,5 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - DB_EXTENSION=uuid-ossp
+      - POSTGRES_DB_EXTENSIONS=hstore,uuid-ossp
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=C --lc-ctype=C
