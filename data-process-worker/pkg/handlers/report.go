@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 
 	"github.com/hibiken/asynq"
+	"github.com/verasthiago/verancial/shared/models"
+	"github.com/verasthiago/verancial/shared/types"
 	"github.com/verasthiago/verancial/worker/pkg/builder"
 	"github.com/verasthiago/verancial/worker/pkg/report"
-	"github.com/verasthiago/verancial/worker/pkg/types"
 )
 
 type CreateReportAPI interface {
@@ -24,7 +25,11 @@ func (c *CreateReportHandler) InitFromBuilder(builder builder.Builder) *CreateRe
 }
 
 func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task) error {
+	var err error
 	var payload types.QueuePayload
+	var bankTransactions []interface{}
+	var transactions []*models.Transaction
+
 	if err := json.Unmarshal(task.Payload()[:], &payload); err != nil {
 		return err
 	}
@@ -34,5 +39,17 @@ func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task)
 		return err
 	}
 
-	return processor.ProcessReport(payload.FilePath)
+	// TODO: Get current day and load all transactions from the previous day in user app
+	err, bankTransactions = processor.LoadFromCSV(payload.FilePath)
+	if err != nil {
+		return err
+	}
+
+	err, transactions = processor.Process(bankTransactions)
+	if err != nil {
+		return err
+	}
+
+	return c.GetRepository().CreateTransactionInBatches(transactions)
+
 }
