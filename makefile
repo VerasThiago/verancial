@@ -29,4 +29,4 @@ ssh_db:
 	docker exec -it database bash
 
 migrate_db:
-	cd shared/scripts && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateUserDatabase && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateUserDatabase
+	cd shared/scripts && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateUserModel && VERANCIAL_DEPLOY_ENV=local go run mage.go migrateTransactionModel
