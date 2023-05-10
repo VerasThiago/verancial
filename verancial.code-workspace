@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "data-process-worker"
+		},
+		{
+			"path": "api"
+		},
+		{
+			"path": "login"
+		},
+		{
+			"path": "shared"
+		},
+		{
+			"path": "python-scripts"
+		},
+		{
+			"path": "app-integration-worker"
+		}
+	],
+	"settings": {}
+}
