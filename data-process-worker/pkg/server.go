@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hibiken/asynq"
-	"github.com/verasthiago/verancial/worker/pkg/builder"
-	"github.com/verasthiago/verancial/worker/pkg/handlers"
-	"github.com/verasthiago/verancial/worker/pkg/types"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/builder"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/handlers"
+	"github.com/verasthiago/verancial/shared/types"
 )
 
 type Server struct {

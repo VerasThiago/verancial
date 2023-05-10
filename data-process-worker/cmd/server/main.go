@@ -1,9 +1,9 @@
 package server
 
 import (
+	"github.com/verasthiago/verancial/data-process-worker/pkg"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/builder"
 	shared "github.com/verasthiago/verancial/shared/flags"
-	"github.com/verasthiago/verancial/worker/pkg"
-	"github.com/verasthiago/verancial/worker/pkg/builder"
 )
 
 func Execute() {

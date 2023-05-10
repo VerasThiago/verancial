@@ -1,4 +1,4 @@
-module github.com/verasthiago/verancial/worker
+module github.com/verasthiago/verancial/data-process-worker
 
 go 1.18
 
