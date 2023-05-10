@@ -32,7 +32,7 @@ func (l *DeleteUserHandler) Handler(context *gin.Context) error {
 		return errors.CreateGenericErrorFromValidateError(errList)
 	}
 
-	if err := l.GetRepository().DeleteUser(request.UserID); err != nil {
+	if err := l.GetRepository().DeleteUser(request.UserId); err != nil {
 		return err
 	}
 
