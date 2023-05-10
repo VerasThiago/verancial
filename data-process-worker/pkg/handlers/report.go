@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 
 	"github.com/hibiken/asynq"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/builder"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/report"
 	"github.com/verasthiago/verancial/shared/models"
 	"github.com/verasthiago/verancial/shared/types"
-	"github.com/verasthiago/verancial/worker/pkg/builder"
-	"github.com/verasthiago/verancial/worker/pkg/report"
 )
 
 type CreateReportAPI interface {
@@ -26,7 +26,7 @@ func (c *CreateReportHandler) InitFromBuilder(builder builder.Builder) *CreateRe
 
 func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task) error {
 	var err error
-	var payload types.QueuePayload
+	var payload types.ReportProcessQueuePayload
 	var bankTransactions []interface{}
 	var transactions []*models.Transaction
 
@@ -34,22 +34,21 @@ func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task)
 		return err
 	}
 
-	err, processor := report.GetReportProcessor(payload.BankName)
+	processor, err := report.GetReportProcessor(payload.BankId)
 	if err != nil {
 		return err
 	}
 
 	// TODO: Get current day and load all transactions from the previous day in user app
-	err, bankTransactions = processor.LoadFromCSV(payload.FilePath)
+	bankTransactions, err = processor.LoadFromCSV(payload.FilePath)
 	if err != nil {
 		return err
 	}
 
-	err, transactions = processor.Process(bankTransactions)
+	transactions, err = processor.Process(bankTransactions, &payload)
 	if err != nil {
 		return err
 	}
 
 	return c.GetRepository().CreateTransactionInBatches(transactions)
-
 }

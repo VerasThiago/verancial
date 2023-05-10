@@ -5,21 +5,22 @@ import (
 	"io"
 	"os"
 
+	"github.com/verasthiago/verancial/data-process-worker/pkg/models/scotiabank"
 	"github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/models"
-	"github.com/verasthiago/verancial/worker/pkg/models/scotiabank"
+	"github.com/verasthiago/verancial/shared/types"
 )
 
 type ScotiaBankReportProcessor struct{}
 
-func (s ScotiaBankReportProcessor) LoadFromCSV(filePath string) (error, []interface{}) {
+func (s ScotiaBankReportProcessor) LoadFromCSV(filePath string) ([]interface{}, error) {
 	var err error
 	var file *os.File
 	var reader *csv.Reader
 	var transactions []interface{}
 
 	if file, err = os.Open(filePath); err != nil {
-		return err, nil
+		return nil, err
 	}
 	defer file.Close()
 
@@ -31,43 +32,47 @@ func (s ScotiaBankReportProcessor) LoadFromCSV(filePath string) (error, []interf
 			break
 		}
 		if err != nil {
-			return err, nil
+			return nil, err
 		}
 
-		err, scotiaBankTransaction := s.ParseReportRecord(record)
+		scotiaBankTransaction, err := s.ParseReportRecord(record)
 		if err != nil {
-			return err, nil
+			return nil, err
 		}
 
 		transactions = append(transactions, scotiaBankTransaction)
 	}
 
-	return nil, transactions
+	return transactions, nil
 }
 
-func (s ScotiaBankReportProcessor) Process(bankTransactions []interface{}) (error, []*models.Transaction) {
+func (s ScotiaBankReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 
 	for _, bankTransaction := range bankTransactions {
 		sbTransacion, ok := bankTransaction.(*scotiabank.ScotiaBank)
 		if !ok {
-			return errors.GenericError{
+			return nil, errors.GenericError{
 				Code:    errors.STATUS_BAD_REQUEST,
 				Type:    errors.GENERIC_ERROR.Type,
 				Message: errors.GENERIC_ERROR.Message,
-			}, nil
+			}
 		}
 
 		transactions = append(transactions, &models.Transaction{
+			UserId:      payload.UserId,
 			Date:        sbTransacion.Date,
 			Amount:      sbTransacion.Amount,
 			Payee:       sbTransacion.Payee,
 			Description: sbTransacion.Description,
 			//TODO: Use AI to guess current category
 			Category: "",
-			Metadata: make(map[string]string),
+			// TODO: Get currency from user info (?)
+			Currency: "CAD",
+			BankId:   payload.BankId,
+			Metadata: nil,
 		})
 	}
 
-	return nil, transactions
+	return transactions, nil
 }
