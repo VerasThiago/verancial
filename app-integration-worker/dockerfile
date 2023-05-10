@@ -1,0 +1,23 @@
+FROM golang:1.18-buster AS build
+
+WORKDIR /app
+
+ENV GO111MODULE=on
+
+COPY ./app-integration-worker ./app-integration-worker
+COPY ./shared ./shared
+COPY ./python-scripts ./python-scripts
+
+RUN cd shared && go mod download
+
+RUN cd app-integration-worker && go mod download
+RUN cd app-integration-worker && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -mod=mod -o /go/bin/app-integration-worker main.go
+
+FROM alpine
+
+COPY --from=build /go/bin/app-integration-worker /app/
+COPY --from=build /app/shared/.env /app/.env
+
+WORKDIR /app
+
+CMD ["./app-integration-worker"]
