@@ -51,7 +51,7 @@ func (n NubankReportProcessor) LoadFromCSV(filePath string) ([]interface{}, erro
 	return transactions, nil
 }
 
-func (s NubankReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload) ([]*models.Transaction, error) {
+func (s NubankReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload, lastDbTransaction *models.Transaction) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 
 	for _, bankTransaction := range bankTransactions {
@@ -64,19 +64,21 @@ func (s NubankReportProcessor) Process(bankTransactions []interface{}, payload *
 			}
 		}
 
-		transactions = append(transactions, &models.Transaction{
-			UserId:      payload.UserId,
-			Date:        (*nubankTransaction).Date,
-			Amount:      (*nubankTransaction).Amount,
-			Payee:       (*nubankTransaction).Payee,
-			Description: (*nubankTransaction).Description,
-			//TODO: Use AI to guess current category
-			Category: "",
-			// TODO: Get currency from user info (?)
-			Currency: "BRL",
-			BankId:   payload.BankId,
-			Metadata: nil,
-		})
+		if nubankTransaction.Date.After(lastDbTransaction.Date) {
+			transactions = append(transactions, &models.Transaction{
+				UserId:      payload.UserId,
+				Date:        (*nubankTransaction).Date,
+				Amount:      (*nubankTransaction).Amount,
+				Payee:       (*nubankTransaction).Payee,
+				Description: (*nubankTransaction).Description,
+				//TODO: Use AI to guess current category
+				Category: "",
+				// TODO: Get currency from user info (?)
+				Currency: "BRL",
+				BankId:   payload.BankId,
+				Metadata: nil,
+			})
+		}
 	}
 
 	return transactions, nil

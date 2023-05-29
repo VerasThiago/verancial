@@ -46,7 +46,7 @@ func (s ScotiaBankCCReportProcessor) LoadFromCSV(filePath string) ([]interface{}
 	return transactions, nil
 }
 
-func (s ScotiaBankCCReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload) ([]*models.Transaction, error) {
+func (s ScotiaBankCCReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload, lastDbTransaction *models.Transaction) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 
 	for _, bankTransaction := range bankTransactions {
@@ -59,19 +59,21 @@ func (s ScotiaBankCCReportProcessor) Process(bankTransactions []interface{}, pay
 			}
 		}
 
-		transactions = append(transactions, &models.Transaction{
-			UserId:      payload.UserId,
-			Date:        sbTransacion.Date,
-			Amount:      sbTransacion.Amount,
-			Payee:       sbTransacion.Payee,
-			Description: sbTransacion.Description,
-			//TODO: Use AI to guess current category
-			Category: "",
-			// TODO: Get currency from user info (?)
-			Currency: "CAD",
-			BankId:   payload.BankId,
-			Metadata: nil,
-		})
+		if sbTransacion.Date.After(lastDbTransaction.Date) {
+			transactions = append(transactions, &models.Transaction{
+				UserId:      payload.UserId,
+				Date:        sbTransacion.Date,
+				Amount:      sbTransacion.Amount,
+				Payee:       sbTransacion.Payee,
+				Description: sbTransacion.Description,
+				//TODO: Use AI to guess current category
+				Category: "",
+				// TODO: Get currency from user info (?)
+				Currency: "CAD",
+				BankId:   payload.BankId,
+				Metadata: nil,
+			})
+		}
 	}
 
 	return transactions, nil

@@ -51,7 +51,7 @@ func (s WiseReportProcessor) LoadFromCSV(filePath string) ([]interface{}, error)
 	return transactions, nil
 }
 
-func (s WiseReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload) ([]*models.Transaction, error) {
+func (s WiseReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload, lastDbTransaction *models.Transaction) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 
 	for _, bankTransaction := range bankTransactions {
@@ -64,34 +64,36 @@ func (s WiseReportProcessor) Process(bankTransactions []interface{}, payload *ty
 			}
 		}
 
-		transactions = append(transactions, &models.Transaction{
-			UserId:      payload.UserId,
-			Date:        wiseTransaction.FinishedOn,
-			Amount:      wiseTransaction.TargetAmountAfterFees,
-			Payee:       wiseTransaction.TargetName,
-			Description: wiseTransaction.Reference,
-			//TODO: Use AI to guess current category
-			Category: "",
-			//TODO: Handle multiple currency
-			Currency: "CAD",
-			BankId:   payload.BankId,
-			Metadata: map[string]string{
-				"TransactionID":         wiseTransaction.TransactionID,
-				"Status":                wiseTransaction.Status,
-				"Direction":             wiseTransaction.Direction,
-				"CreatedOn":             wiseTransaction.CreatedOn.GoString(),
-				"SourceFeeAmount":       ParseFloatToString(wiseTransaction.SourceFeeAmount),
-				"SourceFeeCurrency":     wiseTransaction.SourceFeeCurrency,
-				"TargetFeeAmount":       ParseFloatToString(wiseTransaction.TargetFeeAmount),
-				"TargetFeeCurrency":     wiseTransaction.TargetFeeCurrency,
-				"SourceName":            wiseTransaction.SourceName,
-				"SourceAmountAfterFees": ParseFloatToString(wiseTransaction.SourceAmountAfterFees),
-				"SourceCurrency":        wiseTransaction.SourceCurrency,
-				"TargetCurrency":        wiseTransaction.TargetCurrency,
-				"ExchangeRate":          ParseFloatToString(wiseTransaction.ExchangeRate),
-				"Batch":                 wiseTransaction.Batch,
-			},
-		})
+		if wiseTransaction.CreatedOn.After(lastDbTransaction.Date) {
+			transactions = append(transactions, &models.Transaction{
+				UserId:      payload.UserId,
+				Date:        wiseTransaction.FinishedOn,
+				Amount:      wiseTransaction.TargetAmountAfterFees,
+				Payee:       wiseTransaction.TargetName,
+				Description: wiseTransaction.Reference,
+				//TODO: Use AI to guess current category
+				Category: "",
+				//TODO: Handle multiple currency
+				Currency: "CAD",
+				BankId:   payload.BankId,
+				Metadata: map[string]string{
+					"TransactionID":         wiseTransaction.TransactionID,
+					"Status":                wiseTransaction.Status,
+					"Direction":             wiseTransaction.Direction,
+					"CreatedOn":             wiseTransaction.CreatedOn.GoString(),
+					"SourceFeeAmount":       ParseFloatToString(wiseTransaction.SourceFeeAmount),
+					"SourceFeeCurrency":     wiseTransaction.SourceFeeCurrency,
+					"TargetFeeAmount":       ParseFloatToString(wiseTransaction.TargetFeeAmount),
+					"TargetFeeCurrency":     wiseTransaction.TargetFeeCurrency,
+					"SourceName":            wiseTransaction.SourceName,
+					"SourceAmountAfterFees": ParseFloatToString(wiseTransaction.SourceAmountAfterFees),
+					"SourceCurrency":        wiseTransaction.SourceCurrency,
+					"TargetCurrency":        wiseTransaction.TargetCurrency,
+					"ExchangeRate":          ParseFloatToString(wiseTransaction.ExchangeRate),
+					"Batch":                 wiseTransaction.Batch,
+				},
+			})
+		}
 	}
 
 	return transactions, nil
