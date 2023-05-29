@@ -26,9 +26,10 @@ func (c *CreateReportHandler) InitFromBuilder(builder builder.Builder) *CreateRe
 
 func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task) error {
 	var err error
-	var payload types.ReportProcessQueuePayload
 	var bankTransactions []interface{}
 	var transactions []*models.Transaction
+	var lastDbTransaction *models.Transaction
+	var payload types.ReportProcessQueuePayload
 
 	if err := json.Unmarshal(task.Payload()[:], &payload); err != nil {
 		return err
@@ -45,7 +46,11 @@ func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task)
 		return err
 	}
 
-	transactions, err = processor.Process(bankTransactions, &payload)
+	if lastDbTransaction, err = c.GetRepository().GetLastTransactionFromUserBank(payload.UserId, payload.BankId); err != nil {
+		return err
+	}
+
+	transactions, err = processor.Process(bankTransactions, &payload, lastDbTransaction)
 	if err != nil {
 		return err
 	}

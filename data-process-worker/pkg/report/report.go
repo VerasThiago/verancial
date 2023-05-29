@@ -13,7 +13,7 @@ import (
 
 type BankReport interface {
 	LoadFromCSV(csvPath string) ([]interface{}, error)
-	Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload) ([]*models.Transaction, error)
+	Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload, lastDbTransaction *models.Transaction) ([]*models.Transaction, error)
 }
 
 func GetReportProcessor(bankName constants.BankId) (BankReport, error) {
