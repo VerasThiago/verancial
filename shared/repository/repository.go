@@ -16,6 +16,7 @@ type Repository interface {
 
 	CreateTransactionInBatches(transacions []*models.Transaction) error
 	GetAllTransactionsFromUserBankAfterDate(userId string, BankId constants.BankId, lastTransaction time.Time) ([]*models.Transaction, error)
+	GetLastTransactionFromUserBank(userId string, BankId constants.BankId) (*models.Transaction, error)
 
 	MigrateUser(model *models.User) error
 	MigrateTransaction(model *models.Transaction) error

@@ -16,6 +16,18 @@ func (p *PostgresRepository) MigrateTransaction(model *models.Transaction) error
 	return p.db.AutoMigrate(model)
 }
 
+func (p *PostgresRepository) GetLastTransactionFromUserBank(userId string, BankId constants.BankId) (*models.Transaction, error) {
+	var transaction models.Transaction
+	if err := p.db.Where("user_id = ? AND bank_id = ?", userId, BankId).Order("date desc").First(&transaction).Error; err != nil {
+		if errors.IsNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	transaction.Date = transaction.Date.UTC()
+	return &transaction, nil
+}
+
 func (p *PostgresRepository) GetAllTransactionsFromUserBankAfterDate(userId string, BankId constants.BankId, lastTransaction time.Time) ([]*models.Transaction, error) {
 	var transactionList []*models.Transaction
 	if err := errors.HandleDataNotFoundError(p.db.Where("user_id = ? AND bank_id = ? and date > ? ", userId, BankId, lastTransaction).Find(&transactionList).Error, "TRANSACTIONS"); err != nil {
