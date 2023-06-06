@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -34,6 +35,10 @@ func (c *AppIntegrationHandler) Handler(context context.Context, task *asynq.Tas
 	var generator generators.AppReport
 	var transactions []*models.Transaction
 	var payload types.AppIntegrationQueuePayload
+
+	defer func(startTime time.Time) {
+		fmt.Printf("Total time %#v seconds\n", time.Since(startTime).Seconds())
+	}(time.Now())
 
 	if err = json.Unmarshal(task.Payload()[:], &payload); err != nil {
 		return err
