@@ -63,9 +63,7 @@ func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.Financi
 		return time.Time{}, err
 	}
 	pythonPath := path.Join(pythonScriptsPath, "env/bin/python3")
-	fmt.Printf("\npythonPath %+v\n", pythonPath)
 	filePath := path.Join(pythonScriptsPath, "get_last_transaction_budgetbakers.py")
-	fmt.Printf("\nfilePath %+v\n", filePath)
 
 	cmd := exec.Command(pythonPath, filePath, financialAppCredentials.Login, financialAppCredentials.Password, financialAppCredentials.Metadata[bankId])
 	cmd.Stdout = &stdout
@@ -84,7 +82,6 @@ func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.Financi
 		fmt.Println("error parsing date:", err)
 		return time.Time{}, err
 	}
-	fmt.Printf("\nlastTransactionTime %+v\n", lastTransactionTime)
 
 	return lastTransactionTime, nil
 }
