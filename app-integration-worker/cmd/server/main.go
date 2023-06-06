@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/verasthiago/verancial/data-process-worker/pkg"
-	"github.com/verasthiago/verancial/data-process-worker/pkg/builder"
+	"github.com/verasthiago/verancial/app-integration-worker/pkg"
+	"github.com/verasthiago/verancial/app-integration-worker/pkg/builder"
 	shared "github.com/verasthiago/verancial/shared/flags"
 )
 

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -36,7 +35,6 @@ func (c *CreateUserHandler) Handler(context *gin.Context) error {
 	}
 
 	if errList := request.Validate(); len(errList) > 0 {
-		fmt.Printf("\nerrList %+v\n", errList)
 		return errors.CreateGenericErrorFromValidateError(errList)
 	}
 

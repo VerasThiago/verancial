@@ -5,21 +5,22 @@ import (
 	"io"
 	"os"
 
+	"github.com/verasthiago/verancial/data-process-worker/pkg/models/nubank"
 	"github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/models"
-	"github.com/verasthiago/verancial/worker/pkg/models/nubank"
+	"github.com/verasthiago/verancial/shared/types"
 )
 
 type NubankReportProcessor struct{}
 
-func (n NubankReportProcessor) LoadFromCSV(filePath string) (error, []interface{}) {
+func (n NubankReportProcessor) LoadFromCSV(filePath string) ([]interface{}, error) {
 	var err error
 	var file *os.File
 	var reader *csv.Reader
 	var transactions []interface{}
 
 	if file, err = os.Open(filePath); err != nil {
-		return err, nil
+		return nil, err
 	}
 	defer file.Close()
 
@@ -27,7 +28,7 @@ func (n NubankReportProcessor) LoadFromCSV(filePath string) (error, []interface{
 
 	// Skip header
 	if _, err = reader.Read(); err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	for {
@@ -36,43 +37,47 @@ func (n NubankReportProcessor) LoadFromCSV(filePath string) (error, []interface{
 			break
 		}
 		if err != nil {
-			return err, nil
+			return nil, err
 		}
 
-		err, transaction := n.ParseReportRecord(record)
+		transaction, err := n.ParseReportRecord(record)
 		if err != nil {
-			return err, nil
+			return nil, err
 		}
 
 		transactions = append(transactions, transaction)
 	}
 
-	return nil, transactions
+	return transactions, nil
 }
 
-func (s NubankReportProcessor) Process(bankTransactions []interface{}) (error, []*models.Transaction) {
+func (s NubankReportProcessor) Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 
 	for _, bankTransaction := range bankTransactions {
 		nubankTransaction, ok := bankTransaction.(*nubank.Nubank)
 		if !ok {
-			return errors.GenericError{
+			return nil, errors.GenericError{
 				Code:    errors.STATUS_BAD_REQUEST,
 				Type:    errors.GENERIC_ERROR.Type,
 				Message: errors.GENERIC_ERROR.Message,
-			}, nil
+			}
 		}
 
 		transactions = append(transactions, &models.Transaction{
+			UserId:      payload.UserId,
 			Date:        (*nubankTransaction).Date,
 			Amount:      (*nubankTransaction).Amount,
 			Payee:       (*nubankTransaction).Payee,
 			Description: (*nubankTransaction).Description,
 			//TODO: Use AI to guess current category
 			Category: "",
-			Metadata: make(map[string]string),
+			// TODO: Get currency from user info (?)
+			Currency: "BRL",
+			BankId:   payload.BankId,
+			Metadata: nil,
 		})
 	}
 
-	return nil, transactions
+	return transactions, nil
 }

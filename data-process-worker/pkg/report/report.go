@@ -3,29 +3,30 @@ package report
 import (
 	"fmt"
 
+	"github.com/verasthiago/verancial/data-process-worker/pkg/report/nubank"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/report/scotiabank"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/report/wise"
 	"github.com/verasthiago/verancial/shared/constants"
 	"github.com/verasthiago/verancial/shared/models"
-	"github.com/verasthiago/verancial/worker/pkg/report/nubank"
-	"github.com/verasthiago/verancial/worker/pkg/report/scotiabank"
-	"github.com/verasthiago/verancial/worker/pkg/report/wise"
+	"github.com/verasthiago/verancial/shared/types"
 )
 
 type BankReport interface {
-	LoadFromCSV(csvPath string) (error, []interface{})
-	Process(bankTransactions []interface{}) (error, []*models.Transaction)
+	LoadFromCSV(csvPath string) ([]interface{}, error)
+	Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload) ([]*models.Transaction, error)
 }
 
-func GetReportProcessor(bankName constants.BankID) (error, BankReport) {
+func GetReportProcessor(bankName constants.BankId) (BankReport, error) {
 	switch bankName {
 	case constants.ScotiaBank:
-		return nil, scotiabank.ScotiaBankReportProcessor{}
+		return scotiabank.ScotiaBankReportProcessor{}, nil
 	case constants.ScotiaBankCC:
-		return nil, scotiabank.ScotiaBankCCReportProcessor{}
+		return scotiabank.ScotiaBankCCReportProcessor{}, nil
 	case constants.Nubank:
-		return nil, nubank.NubankReportProcessor{}
+		return nubank.NubankReportProcessor{}, nil
 	case constants.Wise:
-		return nil, wise.WiseReportProcessor{}
+		return wise.WiseReportProcessor{}, nil
 	default:
-		return fmt.Errorf("Bank not supported"), nil
+		return nil, fmt.Errorf("bank not supported")
 	}
 }

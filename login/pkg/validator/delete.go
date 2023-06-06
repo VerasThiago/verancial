@@ -6,7 +6,7 @@ import (
 )
 
 type DeleteRequest struct {
-	UserID string `json:"id"`
+	UserId string `json:"id"`
 }
 
 func (d *DeleteRequest) Validate() []string {

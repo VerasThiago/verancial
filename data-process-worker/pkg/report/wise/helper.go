@@ -5,47 +5,47 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/verasthiago/verancial/worker/pkg/helper"
-	"github.com/verasthiago/verancial/worker/pkg/models/wise"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/helper"
+	"github.com/verasthiago/verancial/data-process-worker/pkg/models/wise"
 )
 
-func (s WiseReportProcessor) ParseReportRecord(record []string) (error, *wise.Wise) {
+func (s WiseReportProcessor) ParseReportRecord(record []string) (*wise.Wise, error) {
 	createdOn, err := time.Parse("2006-01-02 15:04:05", record[3])
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	finishedOn, err := time.Parse("2006-01-02 15:04:05", record[4])
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	sourceFeeAmount, err := helper.ParseFloat(record[5])
 	if err != nil && err != io.EOF {
-		return err, nil
+		return nil, err
 	}
 
 	targetFeeAmount, err := helper.ParseFloat(record[7])
 	if err != nil && err != io.EOF {
-		return err, nil
+		return nil, err
 	}
 
 	sourceAmountAfterFees, err := helper.ParseFloat(record[10])
 	if err != nil && err != io.EOF {
-		return err, nil
+		return nil, err
 	}
 
 	targetAmountAfterFees, err := helper.ParseFloat(record[13])
 	if err != nil && err != io.EOF {
-		return err, nil
+		return nil, err
 	}
 
 	exchangeRate, err := helper.ParseFloat(record[15])
 	if err != nil && err != io.EOF {
-		return err, nil
+		return nil, err
 	}
 
-	return nil, &wise.Wise{
+	return &wise.Wise{
 		TransactionID:         record[0],
 		Status:                record[1],
 		Direction:             record[2],
@@ -64,7 +64,7 @@ func (s WiseReportProcessor) ParseReportRecord(record []string) (error, *wise.Wi
 		ExchangeRate:          exchangeRate,
 		Reference:             record[16],
 		Batch:                 record[17],
-	}
+	}, nil
 
 }
 
