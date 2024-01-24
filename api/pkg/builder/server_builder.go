@@ -4,6 +4,7 @@ import (
 	shared "github.com/verasthiago/verancial/shared/flags"
 	"github.com/verasthiago/verancial/shared/repository"
 	postgresrepository "github.com/verasthiago/verancial/shared/repository/postgresRepository"
+	"github.com/verasthiago/verancial/shared/task"
 	"go.uber.org/zap"
 )
 
@@ -11,6 +12,7 @@ type ServerBuilder struct {
 	*Flags
 	*shared.SharedFlags
 	Repository repository.Repository
+	Task       task.Task
 	Log        *zap.Logger
 }
 
@@ -28,6 +30,10 @@ func (s *ServerBuilder) GetRepository() repository.Repository {
 
 func (s *ServerBuilder) GetLog() *zap.Logger {
 	return s.Log
+}
+
+func (s *ServerBuilder) GetTask() task.Task {
+	return s.Task
 }
 
 func (s *ServerBuilder) InitBuilder(apiEnvFileConfig, sharedEnvFileConfig *shared.EnvFileConfig) Builder {
@@ -49,6 +55,7 @@ func (s *ServerBuilder) InitBuilder(apiEnvFileConfig, sharedEnvFileConfig *share
 
 	s.SharedFlags = sharedFlags
 	s.Log = log
+	s.Task = new(task.AsyncQueue).InitFromFlags(s.SharedFlags)
 	s.Repository = new(postgresrepository.PostgresRepository).InitFromFlags(s.SharedFlags)
 
 	return s
