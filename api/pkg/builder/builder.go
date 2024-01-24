@@ -1,8 +1,9 @@
 package builder
 
 import (
-	shared "github.com/verasthiago/verancial/shared/flags"
+	flags "github.com/verasthiago/verancial/shared/flags"
 	"github.com/verasthiago/verancial/shared/repository"
+	task "github.com/verasthiago/verancial/shared/task"
 	"go.uber.org/zap"
 )
 
@@ -10,6 +11,7 @@ type Builder interface {
 	GetRepository() repository.Repository
 	GetFlags() *Flags
 	GetLog() *zap.Logger
-	GetSharedFlags() *shared.SharedFlags
-	InitBuilder(apiEnvConfigFile, sharedEnvConfigFile *shared.EnvFileConfig) Builder
+	GetSharedFlags() *flags.SharedFlags
+	GetTask() task.Task
+	InitBuilder(apiEnvConfigFile, sharedEnvConfigFile *flags.EnvFileConfig) Builder
 }
