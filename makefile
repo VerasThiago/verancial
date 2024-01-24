@@ -36,3 +36,7 @@ migrate_db:
 	VERANCIAL_DEPLOY_ENV=local go run mage.go migrateUserModel && \
 	VERANCIAL_DEPLOY_ENV=local go run mage.go migrateTransactionModel
 
+start_all:
+	cd shared/scripts && \
+	osascript start_all.sh
+
