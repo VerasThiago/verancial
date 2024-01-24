@@ -35,7 +35,7 @@ func (b BudgetBakers) Generate(transactions []*models.Transaction) (types.AppRep
 }
 
 func (b BudgetBakers) Submit(user *models.User, appReport types.AppReport) error {
-	fileName := fmt.Sprintf("%v.csv", user.Email)
+	fileName := helper.GetFileNameFromAppReport(appReport)
 	file, err := os.Create(fileName)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (b BudgetBakers) Submit(user *models.User, appReport types.AppReport) error
 	return nil
 }
 
-func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.FinancialAppCredentials, bankId constants.BankId) (time.Time, error) {
+func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.FinancialAppCredentials, bankId constants.BankId, lastTransactionDate string) (time.Time, error) {
 	var err error
 	var stdout, stderr bytes.Buffer
 	var lastTransactionTime time.Time
@@ -69,14 +69,18 @@ func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.Financi
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	if err = cmd.Run(); err != nil {
-		fmt.Println("Script error:", stderr.String())
-		return time.Time{}, err
-	}
+	// TODO: Bring dinamic app last transaction function back
+	// if err = cmd.Run(); err != nil {
+	// 	fmt.Println("Script error:", stderr.String())
+	// 	return time.Time{}, err
+	// }
+
+	// layout := "January 2 2006"
+	// timeStr := stdout.String()[:len(stdout.String())-1] // Remove escaped hexadecimal Line Feed
+	// fullDateStr := fmt.Sprintf("%s %d", timeStr, time.Now().Year())
 
 	layout := "January 2 2006"
-	timeStr := stdout.String()[:len(stdout.String())-1] // Remove escaped hexadecimal Line Feed
-	fullDateStr := fmt.Sprintf("%s %d", timeStr, time.Now().Year())
+	fullDateStr := lastTransactionDate
 
 	if lastTransactionTime, err = time.Parse(layout, fullDateStr); err != nil {
 		fmt.Println("error parsing date:", err)
