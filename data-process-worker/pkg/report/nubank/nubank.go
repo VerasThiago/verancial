@@ -26,11 +26,6 @@ func (n NubankReportProcessor) LoadFromCSV(filePath string) ([]interface{}, erro
 
 	reader = csv.NewReader(file)
 
-	// Skip header
-	if _, err = reader.Read(); err != nil {
-		return nil, err
-	}
-
 	for {
 		record, err := reader.Read()
 		if err == io.EOF {
