@@ -10,7 +10,10 @@ import (
 
 func getPayee(record string) string {
 	splited := strings.Split(record, " - ")
-	return splited[1]
+	if len(splited) > 1 {
+		return splited[1]
+	}
+	return splited[0]
 }
 
 func (s NubankReportProcessor) ParseReportRecord(record []string) (*nubank.Nubank, error) {
