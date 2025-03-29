@@ -8,5 +8,6 @@ import (
 type Builder interface {
 	GetRepository() repository.Repository
 	GetSharedFlags() *shared.SharedFlags
-	InitBuilder(sharedEnvFileConfig *shared.EnvFileConfig) Builder
+	GetFlags() *Flags
+	InitBuilder(appIntegrationEnvConfigFile, sharedEnvFileConfig *shared.EnvFileConfig) Builder
 }

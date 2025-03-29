@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/builder"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/report"
@@ -14,9 +15,9 @@ import (
 )
 
 type CreateReportAPI interface {
-	Handler(context context.Context, task *asynq.Task) error
+	HandlerSync(context *gin.Context) error
+	HandlerAsync(context context.Context, task *asynq.Task) error
 }
-
 type CreateReportHandler struct {
 	builder.Builder
 }
@@ -26,17 +27,33 @@ func (c *CreateReportHandler) InitFromBuilder(builder builder.Builder) *CreateRe
 	return c
 }
 
-func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task) error {
-	var err error
-	var bankTransactions []interface{}
-	var transactions []*models.Transaction
-	var lastDbTransaction *models.Transaction
+func (c *CreateReportHandler) HandlerAsync(context context.Context, task *asynq.Task) error {
 	var payload types.ReportProcessQueuePayload
 
 	fmt.Printf("\n[0/6] Parsing request payload...")
 	if err := json.Unmarshal(task.Payload()[:], &payload); err != nil {
 		return err
 	}
+
+	return c.Execute(payload)
+}
+
+func (c *CreateReportHandler) HandlerSync(context *gin.Context) error {
+	var payload types.ReportProcessQueuePayload
+
+	fmt.Printf("\n[0/6] Parsing request payload...")
+	if err := context.ShouldBindJSON(&payload); err != nil {
+		return err
+	}
+
+	return c.Execute(payload)
+}
+
+func (c *CreateReportHandler) Execute(payload types.ReportProcessQueuePayload) error {
+	var err error
+	var bankTransactions []interface{}
+	var transactions []*models.Transaction
+	var lastDbTransaction *models.Transaction
 
 	fmt.Printf("\n[1/6] Getting ReportProcessor for %s ...", payload.FilePath)
 	processor, err := report.GetReportProcessor(payload.BankId)
@@ -48,7 +65,6 @@ func (c *CreateReportHandler) Handler(context context.Context, task *asynq.Task)
 	fmt.Printf("\n[2/6] Loading transactions from the file...")
 	// TODO: Get current day and load all transactions from the previous day in user app
 	bankTransactions, err = processor.LoadFromCSV(payload.FilePath)
-	fmt.Printf("\nbankTransactions[0] %+v\n", bankTransactions[0])
 	if err != nil {
 		fmt.Printf("Error line 50: %+v\n", err)
 		return err
