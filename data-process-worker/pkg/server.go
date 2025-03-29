@@ -3,9 +3,11 @@ package pkg
 import (
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/builder"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/handlers"
+	"github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/types"
 )
 
@@ -22,7 +24,7 @@ func (s *Server) InitFromBuilder(builder builder.Builder) *Server {
 	return s
 }
 
-func (s *Server) Run() error {
+func (s *Server) RunAsync() error {
 	dsn := fmt.Sprintf("%+v:%+v", s.GetSharedFlags().QueueHost, s.GetSharedFlags().QueuePort)
 	redisConnection := asynq.RedisClientOpt{
 		Addr: dsn,
@@ -41,8 +43,29 @@ func (s *Server) Run() error {
 
 	mux.HandleFunc(
 		types.PatternReportProcess,
-		s.ReportCreateAPI.Handler,
+		s.ReportCreateAPI.HandlerAsync,
 	)
 
 	return worker.Run(mux)
+}
+
+func (s *Server) RunSync() error {
+	app := gin.Default()
+	api := app.Group("/dpw")
+	{
+		apiV0 := api.Group("/v0")
+		{
+			apiV0.POST("process_report", errors.ErrorRoute(s.ReportCreateAPI.HandlerSync))
+		}
+	}
+
+	return app.Run(":" + s.GetFlags().Port)
+}
+
+func (s *Server) Run() error {
+	if s.GetFlags().AsyncProcessing {
+		return s.RunAsync()
+	}
+
+	return s.RunSync()
 }

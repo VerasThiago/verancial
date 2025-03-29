@@ -8,7 +8,12 @@ import (
 
 type ServerBuilder struct {
 	*shared.SharedFlags
+	*Flags
 	Repository repository.Repository
+}
+
+func (s *ServerBuilder) GetFlags() *Flags {
+	return s.Flags
 }
 
 func (s *ServerBuilder) GetSharedFlags() *shared.SharedFlags {
@@ -19,7 +24,12 @@ func (s *ServerBuilder) GetRepository() repository.Repository {
 	return s.Repository
 }
 
-func (s *ServerBuilder) InitBuilder(sharedEnvFileConfig *shared.EnvFileConfig) Builder {
+func (s *ServerBuilder) InitBuilder(appIntegrationEnvConfigFile, sharedEnvFileConfig *shared.EnvFileConfig) Builder {
+	flags, err := new(Flags).InitFromViper(appIntegrationEnvConfigFile)
+	if err != nil {
+		panic(err)
+	}
+	s.Flags = flags
 
 	sharedflags, err := new(shared.SharedFlags).InitFromViper(sharedEnvFileConfig)
 	if err != nil {

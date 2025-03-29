@@ -1,12 +1,9 @@
 package budgetbakers
 
 import (
-	"bytes"
 	"encoding/csv"
 	"fmt"
 	"os"
-	"os/exec"
-	"path"
 	"time"
 
 	"github.com/verasthiago/verancial/app-integration-worker/pkg/generators/helper"
@@ -19,6 +16,8 @@ type BudgetBakers struct{}
 
 func (b BudgetBakers) Generate(transactions []*models.Transaction) (types.AppReport, error) {
 	var csv types.AppReport = types.AppReport{}
+	var header []string = []string{"Date", "Amount", "Note", "Payee", "Currency"}
+	csv = append(csv, header)
 	for _, t := range transactions {
 		bb := models.BudgetBakers{
 			Date:        t.Date.In(time.UTC),
@@ -55,35 +54,10 @@ func (b BudgetBakers) Submit(user *models.User, appReport types.AppReport) error
 
 func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.FinancialAppCredentials, bankId constants.BankId, lastTransactionDate string) (time.Time, error) {
 	var err error
-	var stdout, stderr bytes.Buffer
 	var lastTransactionTime time.Time
-	var pythonScriptsPath string
-
-	if pythonScriptsPath, err = helper.GetPythonScriptsPath(); err != nil {
-		return time.Time{}, err
-	}
-	pythonPath := path.Join(pythonScriptsPath, "env/bin/python3")
-	filePath := path.Join(pythonScriptsPath, "get_last_transaction_budgetbakers.py")
-
-	cmd := exec.Command(pythonPath, filePath, financialAppCredentials.Login, financialAppCredentials.Password, financialAppCredentials.Metadata[bankId])
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	// TODO: Bring dinamic app last transaction function back
-	// if err = cmd.Run(); err != nil {
-	// 	fmt.Println("Script error:", stderr.String())
-	// 	return time.Time{}, err
-	// }
-
-	// layout := "January 2 2006"
-	// timeStr := stdout.String()[:len(stdout.String())-1] // Remove escaped hexadecimal Line Feed
-	// fullDateStr := fmt.Sprintf("%s %d", timeStr, time.Now().Year())
 
 	layout := "January 2 2006"
-	fullDateStr := lastTransactionDate
-
-	if lastTransactionTime, err = time.Parse(layout, fullDateStr); err != nil {
-		fmt.Println("error parsing date:", err)
+	if lastTransactionTime, err = time.Parse(layout, lastTransactionDate); err != nil {
 		return time.Time{}, err
 	}
 

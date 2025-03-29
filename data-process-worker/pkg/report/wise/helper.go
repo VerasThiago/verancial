@@ -20,27 +20,27 @@ func (s WiseReportProcessor) ParseReportRecord(record []string) (*wise.Wise, err
 		return nil, err
 	}
 
-	sourceFeeAmount, err := helper.ParseFloat(record[5])
+	sourceFeeAmount, err := helper.ParseAmountFloat(record[5])
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	targetFeeAmount, err := helper.ParseFloat(record[7])
+	targetFeeAmount, err := helper.ParseAmountFloat(record[7])
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	sourceAmountAfterFees, err := helper.ParseFloat(record[10])
+	sourceAmountAfterFees, err := helper.ParseAmountFloat(record[10])
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	targetAmountAfterFees, err := helper.ParseFloat(record[13])
+	targetAmountAfterFees, err := helper.ParseAmountFloat(record[13])
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	exchangeRate, err := helper.ParseFloat(record[15])
+	exchangeRate, err := helper.ParseAmountFloat(record[15])
 	if err != nil && err != io.EOF {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
 	"github.com/verasthiago/verancial/app-integration-worker/pkg/builder"
 	"github.com/verasthiago/verancial/app-integration-worker/pkg/generators"
@@ -15,40 +16,57 @@ import (
 )
 
 type AppIntegrationAPI interface {
-	Handler(context context.Context, task *asynq.Task) error
+	HandlerAsync(context context.Context, task *asynq.Task) error
+	HandlerSync(context *gin.Context) error
 }
 
 type AppIntegrationHandler struct {
 	builder.Builder
 }
 
-func (c *AppIntegrationHandler) InitFromBuilder(builder builder.Builder) *AppIntegrationHandler {
-	c.Builder = builder
-	return c
+func (a *AppIntegrationHandler) InitFromBuilder(builder builder.Builder) *AppIntegrationHandler {
+	a.Builder = builder
+	return a
 }
 
-func (c *AppIntegrationHandler) Handler(context context.Context, task *asynq.Task) error {
+func (a *AppIntegrationHandler) HandlerSync(context *gin.Context) error {
+	var payload types.AppIntegrationQueuePayload
+
+	fmt.Printf("\n[0/7] Parsing request payload...")
+	if err := context.ShouldBindJSON(&payload); err != nil {
+		return err
+	}
+
+	return a.Execute(payload)
+}
+
+func (a *AppIntegrationHandler) HandlerAsync(context context.Context, task *asynq.Task) error {
+	var payload types.AppIntegrationQueuePayload
+
+	fmt.Printf("[0/7] Parsing request payload...\n")
+	if err := json.Unmarshal(task.Payload()[:], &payload); err != nil {
+		return err
+	}
+
+	fmt.Printf("\npayload %+v\n", payload)
+
+	return a.Execute(payload)
+}
+
+func (a *AppIntegrationHandler) Execute(payload types.AppIntegrationQueuePayload) error {
 	var err error
 	var user *models.User
 	var appReport t.AppReport
 	var lastTransaction time.Time
 	var generator generators.AppReport
 	var transactions []*models.Transaction
-	var payload types.AppIntegrationQueuePayload
 
 	defer func(startTime time.Time) {
 		fmt.Printf("Total time %#v seconds\n", time.Since(startTime).Seconds())
 	}(time.Now())
 
-	fmt.Printf("[0/7] Processing request payload...\n")
-	if err = json.Unmarshal(task.Payload()[:], &payload); err != nil {
-		fmt.Printf("\nerr line 44 %+v\n", err)
-		return err
-	}
-	fmt.Printf("\npayload %+v\n", payload)
-
 	fmt.Printf("[1/7] Getting user from database...\n")
-	if user, err = c.GetRepository().GetUserByID(payload.UserId); err != nil {
+	if user, err = a.GetRepository().GetUserByID(payload.UserId); err != nil {
 		fmt.Printf("\nerr line 51 %+v\n", err)
 		return err
 	}
@@ -67,7 +85,7 @@ func (c *AppIntegrationHandler) Handler(context context.Context, task *asynq.Tas
 	fmt.Printf("\nlastTransaction %+v\n", lastTransaction)
 
 	fmt.Printf("[4/7] Getting all transactions after last from app...\n")
-	if transactions, err = c.GetRepository().GetAllTransactionsFromUserBankAfterDate(user.ID, payload.BankId, lastTransaction); err != nil {
+	if transactions, err = a.GetRepository().GetAllTransactionsFromUserBankAfterDate(user.ID, payload.BankId, lastTransaction); err != nil {
 		fmt.Printf("\nerr line 66 %+v\n", err)
 		return err
 	}

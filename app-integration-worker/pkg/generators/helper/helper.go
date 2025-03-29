@@ -28,8 +28,8 @@ func GetFileNameFromAppReport(appReport types.AppReport) string {
 		return appReport[0][0]
 	}
 
-	firstDate := appReport[0][0]
-	lastDate := appReport[reportSize-1][0]
+	firstDate := appReport[reportSize-1][0]
+	lastDate := appReport[1][0]
 
 	return fmt.Sprintf("%s_to_%s.csv", firstDate, lastDate)
 }

@@ -41,6 +41,10 @@ type SharedFlags struct {
 	QueuePort        string `mapstructure:"QUEUE_PORT"`
 	JwtKey           string `mapstructure:"JWT_KEY"`
 	JwtKeyEmail      string `mapstructure:"JWT_KEY_EMAIL"`
+	DPWHost          string `mapstructure:"DPW_HOST"`
+	DPWPort          string `mapstructure:"DPW_PORT"`
+	AIWHost          string `mapstructure:"AIW_HOST"`
+	AIWPort          string `mapstructure:"AIW_PORT"`
 }
 
 type EnvFileConfig struct {
