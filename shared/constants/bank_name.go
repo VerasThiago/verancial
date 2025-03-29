@@ -3,8 +3,8 @@ package constants
 type BankId string
 
 const (
-	ScotiaBank   BankId = "eb0d5f2b-8b8c-4f9b-8e1a-223e69facbd0"
-	ScotiaBankCC BankId = "01ffa084-3b61-4987-997f-02d07cf86cff"
-	Nubank       BankId = "2462cb1a-f1bd-45c3-b388-da489021d3cd"
+	ScotiaBank   BankId = "-Account_c7128535-258e-4fd4-a2fb-7f56bce9943e"
+	ScotiaBankCC BankId = "-Account_ab39679b-c8a5-47aa-8a31-855127b843ba"
+	Nubank       BankId = "-Account_4e4047c9-d93f-4f57-80c0-57ca4eeec38f"
 	Wise         BankId = "698aec8d-837a-4fd3-b9df-d22a28ead947"
 )

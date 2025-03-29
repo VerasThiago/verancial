@@ -1,0 +1,128 @@
+[
+    {
+        "CategoryName": "Credit Card",
+        "PayeeNames": [
+            "MB-CREDIT CARD/LOC PAY",
+            "Pagamento de fatura"
+        ]
+    },
+    {
+        "CategoryName": "Transfer, withdraw",
+        "PayeeNames": [
+            "MB-TRANSFER"
+        ]
+    },
+    {
+        "CategoryName": "Interests, dividends",
+        "PayeeNames": [
+            "regular interest",
+            "banking package interest boost"
+        ]
+    },
+    {
+        "CategoryName": "Salary",
+        "PayeeNames": [
+            "MICROSOFT DEVLP"
+        ]
+    },
+    {
+        "CategoryName": "Groceries",
+        "PayeeNames": [
+            "COSTCO"
+        ]
+    },
+    {
+        "CategoryName": "Gym",
+        "PayeeNames": [
+            "FITNESS WORLD GEORGIA RICHMOND BC"
+        ]
+    },
+    {
+        "CategoryName": "Energy, utilities",
+        "PayeeNames": [
+            "B.C. HYDRO & POWER AUTHORITY"
+        ]
+    },
+    {
+        "CategoryName": "Uber",
+        "PayeeNames": [
+            "UBER"
+        ]
+    },
+    {
+        "CategoryName": "Alcohol, tobacco",
+        "PayeeNames": [
+            "BEER & SPIRI VANCOUVER",
+            "LIBRARY SQUARE PUBLIC"
+        ]
+    },
+    {
+        "CategoryName": "Public transport",
+        "PayeeNames": [
+            "COMPASS AUTOLOAD",
+            "COMPASS VENDING",
+            "OPOS COMPASS WEB"
+        ]
+    },
+    {
+        "CategoryName": "Hair",
+        "PayeeNames": [
+            "CUT MY HAIR",
+            "BARBER SHOP"
+        ]
+    },
+    {
+        "CategoryName": "Internet",
+        "PayeeNames": [
+            "FIBRESTREAM OTTAWA ON",
+            "BEANFIELD TECHNOLOGIES",
+            "BEANFIELD TECHNOLOGIES TORONTO ON"
+        ]
+    },
+    {
+        "CategoryName": "Phone",
+        "PayeeNames": [
+            "VIRGIN",
+            "ROGERS"
+        ]
+    },
+    {
+        "CategoryName": "Terapy",
+        "PayeeNames": [
+            "DANIEL VERSIANI CINTRA SOARES FERREIRA"
+        ]
+    },
+    {
+        "CategoryName": "Entertainment Food",
+        "PayeeNames": [
+            "Frutos de Goias",
+            "Acai Casca",
+            "Entertainment Food",
+            "LONDON DRUGS",
+            "EUREST-MICROSOFT",
+            "EUREST-MICROSOFT-63396",
+            "MCDONALD'S",
+            "MARKETPLACE IGA",
+            "GELATO EXPRESS",
+            "A&W STORE",
+            "BROOKLYN PIZZA",
+            "JAPADOG",
+            "DOLLARAMA",
+            "MARKET",
+            "REAL CDN SUPERSTORE",
+            "BK #",
+            "H-MART",
+            "7 ELEVEN",
+            "Five Guys",
+            "OEB",
+            "LINDT",
+            "7-ELEVEN",
+            "TIM HORTONS",
+            "TREES CHEESE CAKE",
+            "MONZO BURGER",
+            "RAZILIAN STEAKHOUSE",
+            "SPAGHETTI",
+            "MEMPHIS BLUES"
+        ]
+    }
+]

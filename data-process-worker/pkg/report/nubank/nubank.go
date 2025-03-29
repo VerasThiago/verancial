@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	categoryguesser "github.com/verasthiago/verancial/data-process-worker/pkg/category-guesser"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/models/nubank"
 	"github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/models"
@@ -22,6 +23,7 @@ func (n NubankReportProcessor) LoadFromCSV(filePath string) ([]interface{}, erro
 	if file, err = os.Open(filePath); err != nil {
 		return nil, err
 	}
+
 	defer file.Close()
 
 	reader = csv.NewReader(file)
@@ -60,14 +62,18 @@ func (s NubankReportProcessor) Process(bankTransactions []interface{}, payload *
 		}
 
 		if nubankTransaction.Date.After(lastDbTransaction.Date) {
+			category, err := categoryguesser.GuessCategory(nubankTransaction.Payee)
+			if err != nil {
+				return nil, err
+			}
+
 			transactions = append(transactions, &models.Transaction{
 				UserId:      payload.UserId,
-				Date:        (*nubankTransaction).Date,
-				Amount:      (*nubankTransaction).Amount,
-				Payee:       (*nubankTransaction).Payee,
-				Description: (*nubankTransaction).Description,
-				//TODO: Use AI to guess current category
-				Category: "",
+				Date:        nubankTransaction.Date,
+				Amount:      nubankTransaction.Amount,
+				Payee:       nubankTransaction.Payee,
+				Description: nubankTransaction.Description,
+				Category:    category,
 				// TODO: Get currency from user info (?)
 				Currency: "BRL",
 				BankId:   payload.BankId,

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	categoryguesser "github.com/verasthiago/verancial/data-process-worker/pkg/category-guesser"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/models/scotiabank"
 	"github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/models"
@@ -60,14 +61,18 @@ func (s ScotiaBankCCReportProcessor) Process(bankTransactions []interface{}, pay
 		}
 
 		if sbTransacion.Date.After(lastDbTransaction.Date) {
+			category, err := categoryguesser.GuessCategory(sbTransacion.Payee)
+			if err != nil {
+				return nil, err
+			}
+
 			transactions = append(transactions, &models.Transaction{
 				UserId:      payload.UserId,
 				Date:        sbTransacion.Date,
 				Amount:      sbTransacion.Amount,
 				Payee:       sbTransacion.Payee,
 				Description: sbTransacion.Description,
-				//TODO: Use AI to guess current category
-				Category: "",
+				Category:    category,
 				// TODO: Get currency from user info (?)
 				Currency: "CAD",
 				BankId:   payload.BankId,

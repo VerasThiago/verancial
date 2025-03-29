@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	categoryguesser "github.com/verasthiago/verancial/data-process-worker/pkg/category-guesser"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/models/wise"
 	"github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/models"
@@ -65,14 +66,18 @@ func (s WiseReportProcessor) Process(bankTransactions []interface{}, payload *ty
 		}
 
 		if wiseTransaction.CreatedOn.After(lastDbTransaction.Date) {
+			category, err := categoryguesser.GuessCategory(wiseTransaction.TargetName)
+			if err != nil {
+				return nil, err
+			}
+
 			transactions = append(transactions, &models.Transaction{
 				UserId:      payload.UserId,
 				Date:        wiseTransaction.FinishedOn,
 				Amount:      wiseTransaction.TargetAmountAfterFees,
 				Payee:       wiseTransaction.TargetName,
 				Description: wiseTransaction.Reference,
-				//TODO: Use AI to guess current category
-				Category: "",
+				Category:    category,
 				//TODO: Handle multiple currency
 				Currency: "CAD",
 				BankId:   payload.BankId,

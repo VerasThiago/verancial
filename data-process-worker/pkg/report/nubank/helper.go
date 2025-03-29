@@ -25,7 +25,7 @@ func (s NubankReportProcessor) ParseReportRecord(record []string) (*nubank.Nuban
 	if err != nil {
 		return nil, err
 	}
-	amount, err = helper.ParseFloat(record[1])
+	amount, err = helper.ParseAmountFloat(record[1])
 	if err != nil {
 		return nil, err
 	}
