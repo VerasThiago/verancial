@@ -4,19 +4,20 @@ WORKDIR /app
 
 ENV GO111MODULE=on
 
-COPY ./worker ./worker
+COPY ./data-process-worker ./data-process-worker
 COPY ./shared ./shared
 
 RUN cd shared && go mod download
 
-RUN cd worker && go mod download
-RUN cd worker && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -mod=mod -o /go/bin/worker main.go
+RUN cd data-process-worker && go mod download
+RUN cd data-process-worker && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -mod=mod -o /go/bin/data-process-worker main.go
 
 FROM alpine
 
-COPY --from=build /go/bin/worker /app/
-COPY --from=build /app/shared/.env /app/.env
+COPY --from=build /go/bin/data-process-worker /app/
+COPY --from=build /app/data-process-worker/.env /app/.env
+COPY --from=build /app/shared/.env /app/shared/.env
 
 WORKDIR /app
 
-CMD ["./worker"]
+CMD ["./data-process-worker"]
