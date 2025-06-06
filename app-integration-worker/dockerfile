@@ -16,7 +16,8 @@ RUN cd app-integration-worker && CGO_ENABLED=0 GOOS=linux go build -a -installsu
 FROM alpine
 
 COPY --from=build /go/bin/app-integration-worker /app/
-COPY --from=build /app/shared/.env /app/.env
+COPY --from=build /app/app-integration-worker/.env /app/.env
+COPY --from=build /app/shared/.env /app/shared/.env
 
 WORKDIR /app
 

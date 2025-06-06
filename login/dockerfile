@@ -16,7 +16,7 @@ FROM alpine
 
 COPY --from=build /go/bin/login /app/
 COPY --from=build /app/login/.env /app/.env
-COPY --from=build /app/shared/.env /app/.env
+COPY --from=build /app/shared/.env /app/shared/.env
 
 WORKDIR /app
 
