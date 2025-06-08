@@ -3,7 +3,6 @@ tell application "iTerm2"
     select first window
     
     tell current session of current window
-        write text "make start_db"
         write text "make start_redis"
          write text "sleep 5"
         split vertically with default profile

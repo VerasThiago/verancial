@@ -22,14 +22,15 @@ start_login_local:
 start_login_docker:
 	docker-compose up login
 
-start_db:
-	docker-compose up -d database
-
 start_redis:
 	docker-compose up -d worker-redis
 
-ssh_db:
-	docker exec -it database bash
+# Local database commands removed - now using Supabase
+# To start local database for development, uncomment the database service in docker-compose.yaml and use:
+# start_db:
+# 	docker-compose up -d database
+# ssh_db:
+# 	docker exec -it database bash
 
 migrate_db:
 	cd shared/scripts && \
