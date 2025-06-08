@@ -30,6 +30,7 @@ var AVAILABLE_ENV_VARS_MAP = map[string]bool{
 type SharedFlags struct {
 	Deploy           string
 	AppHost          string `mapstructure:"APP_HOST"`
+	DatabaseURL      string `mapstructure:"DATABASE_URL"`
 	DatabaseHost     string `mapstructure:"DB_HOST"`
 	DatabasePort     string `mapstructure:"DB_PORT"`
 	DatabaseUser     string `mapstructure:"DB_USER"`
