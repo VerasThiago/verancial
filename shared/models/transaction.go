@@ -1,8 +1,10 @@
 package models
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type Transaction struct {
 	Currency    string              `json:"currency"`
 	BankId      constants.BankId    `json:"bankid"`
 	Metadata    TransactionMetadata `json:"metadata" gorm:"type:jsonb"`
+	Fingerprint string              `json:"fingerprint" gorm:"uniqueIndex:idx_transaction_fingerprint"`
 }
 
 func (t *Transaction) BeforeCreate(tx *gorm.DB) (err error) {
@@ -41,4 +44,20 @@ func (t *TransactionMetadata) Scan(value interface{}) error {
 		return fmt.Errorf("TransactionMetadata.Scan: unsupported value type %T", value)
 	}
 	return json.Unmarshal(b, t)
+}
+
+func (t *Transaction) SetFingerprint() {
+	normalizedDate := t.Date.UTC().Format("2006-01-02")
+	normalizedAmount := fmt.Sprintf("%.2f", t.Amount)
+	normalizedDescription := strings.ToLower(strings.TrimSpace(t.Description))
+
+	fingerprintData := fmt.Sprintf("%s|%s|%s|%s",
+		t.UserId,
+		normalizedDate,
+		normalizedAmount,
+		normalizedDescription,
+	)
+
+	hash := sha256.Sum256([]byte(fingerprintData))
+	t.Fingerprint = fmt.Sprintf("%x", hash)
 }

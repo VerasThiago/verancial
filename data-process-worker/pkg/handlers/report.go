@@ -30,7 +30,7 @@ func (c *CreateReportHandler) InitFromBuilder(builder builder.Builder) *CreateRe
 func (c *CreateReportHandler) HandlerAsync(context context.Context, task *asynq.Task) error {
 	var payload types.ReportProcessQueuePayload
 
-	fmt.Printf("\n[0/6] Parsing request payload...")
+	fmt.Printf("\n[0/7] Parsing request payload...")
 	if err := json.Unmarshal(task.Payload()[:], &payload); err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (c *CreateReportHandler) HandlerAsync(context context.Context, task *asynq.
 func (c *CreateReportHandler) HandlerSync(context *gin.Context) error {
 	var payload types.ReportProcessQueuePayload
 
-	fmt.Printf("\n[0/6] Parsing request payload...")
+	fmt.Printf("\n[0/7] Parsing request payload...")
 	if err := context.ShouldBindJSON(&payload); err != nil {
 		return err
 	}
@@ -55,14 +55,14 @@ func (c *CreateReportHandler) Execute(payload types.ReportProcessQueuePayload) e
 	var transactions []*models.Transaction
 	var lastDbTransaction *models.Transaction
 
-	fmt.Printf("\n[1/6] Getting ReportProcessor for %s ...", payload.FilePath)
+	fmt.Printf("\n[1/7] Getting ReportProcessor for %s ...", payload.FilePath)
 	processor, err := report.GetReportProcessor(payload.BankId)
 	if err != nil {
 		fmt.Printf("Error line 41: %+v\n", err)
 		return err
 	}
 
-	fmt.Printf("\n[2/6] Loading transactions from the file...")
+	fmt.Printf("\n[2/7] Loading transactions from the file...")
 	// TODO: Get current day and load all transactions from the previous day in user app
 	bankTransactions, err = processor.LoadFromCSV(payload.FilePath)
 	if err != nil {
@@ -70,7 +70,7 @@ func (c *CreateReportHandler) Execute(payload types.ReportProcessQueuePayload) e
 		return err
 	}
 
-	fmt.Printf("\n[3/6] Loading last database transaction...\n")
+	fmt.Printf("\n[3/7] Loading last database transaction...\n")
 	if lastDbTransaction, err = c.GetRepository().GetLastTransactionFromUserBank(payload.UserId, payload.BankId); err != nil {
 		fmt.Printf("Error line 55: %+v\n", err)
 		return err
@@ -82,21 +82,24 @@ func (c *CreateReportHandler) Execute(payload types.ReportProcessQueuePayload) e
 		lastDbTransaction = &models.Transaction{Date: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)}
 	}
 
-	fmt.Printf("\nlastDbTransaction %+v\n", lastDbTransaction.Date)
-
-	fmt.Printf("\n[4/6] Processing csv transations...\n")
+	fmt.Printf("\n[4/7] Processing csv transations...\n")
 	transactions, err = processor.Process(bankTransactions, &payload, lastDbTransaction)
 	if err != nil {
 		fmt.Printf("Error line 61: %+v\n", err)
 		return err
 	}
 
-	fmt.Printf("\n[5/6] Saving new transactions to database...\n")
-	err = c.GetRepository().CreateTransactionInBatches(transactions)
-	if err != nil {
-		fmt.Printf("Error line 75: %+v\n", err)
+	fmt.Printf("\n[5/7] Setting transaction fingerprints for universal duplicate detection...\n")
+	for _, tx := range transactions {
+		tx.SetFingerprint()
 	}
 
-	fmt.Printf("\n[6/6] DONE!!\n")
+	fmt.Printf("\n[6/7] Saving new transactions to database\n")
+	if err := c.GetRepository().CreateUniqueTransactionInBatches(transactions); err != nil {
+		fmt.Printf("Error line 75: %+v\n", err)
+		return err
+	}
+
+	fmt.Printf("\n[7/7] DONE!!\n")
 	return err
 }
