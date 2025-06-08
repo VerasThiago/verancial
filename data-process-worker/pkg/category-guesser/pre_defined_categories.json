@@ -9,7 +9,9 @@
     {
         "CategoryName": "Transfer, withdraw",
         "PayeeNames": [
-            "MB-TRANSFER"
+            "MB-TRANSFER",
+            "TRANSFER",
+            "PAYMENT"
         ]
     },
     {
@@ -22,13 +24,17 @@
     {
         "CategoryName": "Salary",
         "PayeeNames": [
-            "MICROSOFT DEVLP"
+            "MICROSOFT DEVLP",
+            "ACH Deposit GOOGLE LLC"
         ]
     },
     {
         "CategoryName": "Groceries",
         "PayeeNames": [
-            "COSTCO"
+            "COSTCO",
+            "SAFEWAY",
+            "TARGET",
+            "CVS"
         ]
     },
     {
@@ -40,7 +46,8 @@
     {
         "CategoryName": "Energy, utilities",
         "PayeeNames": [
-            "B.C. HYDRO & POWER AUTHORITY"
+            "B.C. HYDRO & POWER AUTHORITY",
+            "PUGET SOUND ENERGY"
         ]
     },
     {
@@ -76,7 +83,8 @@
         "PayeeNames": [
             "FIBRESTREAM OTTAWA ON",
             "BEANFIELD TECHNOLOGIES",
-            "BEANFIELD TECHNOLOGIES TORONTO ON"
+            "BEANFIELD TECHNOLOGIES TORONTO ON",
+            "COMCAST"
         ]
     },
     {
@@ -123,6 +131,24 @@
             "RAZILIAN STEAKHOUSE",
             "SPAGHETTI",
             "MEMPHIS BLUES"
+        ]
+    },
+    {
+        "CategoryName": "Auto & Transport",
+        "PayeeNames": [
+            "CHEVRON"
+        ]
+    },
+    {
+        "CategoryName": "Technology",
+        "PayeeNames": [
+            "APPLE"
+        ]
+    },
+    {
+        "CategoryName": "Entertainment",
+        "PayeeNames": [
+            "CINEMARK"
         ]
     }
 ]
