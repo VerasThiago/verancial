@@ -6,10 +6,24 @@ import (
 	"github.com/verasthiago/verancial/shared/constants"
 	"github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/models"
+	"gorm.io/gorm/clause"
 )
 
 func (p *PostgresRepository) CreateTransactionInBatches(transactions []*models.Transaction) error {
 	return errors.HandleDuplicateError(p.db.CreateInBatches(transactions, len(transactions)).Error)
+}
+
+func (p *PostgresRepository) CreateUniqueTransactionInBatches(transactions []*models.Transaction) error {
+	if len(transactions) == 0 {
+		return nil
+	}
+
+	return errors.HandleDuplicateError(p.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "fingerprint"},
+		},
+		DoNothing: true,
+	}).CreateInBatches(transactions, len(transactions)).Error)
 }
 
 func (p *PostgresRepository) MigrateTransaction(model *models.Transaction) error {
