@@ -3,6 +3,7 @@ package report
 import (
 	"fmt"
 
+	"github.com/verasthiago/verancial/data-process-worker/pkg/report/firsttech"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/report/nubank"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/report/scotiabank"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/report/wise"
@@ -26,6 +27,10 @@ func GetReportProcessor(bankName constants.BankId) (BankReport, error) {
 		return nubank.NubankReportProcessor{}, nil
 	case constants.Wise:
 		return wise.WiseReportProcessor{}, nil
+	case constants.FirstTech:
+		return firsttech.FirstTechReportProcessor{}, nil
+	case constants.FirstTechCC:
+		return firsttech.FirstTechCCReportProcessor{}, nil
 	default:
 		return nil, fmt.Errorf("bank not supported")
 	}

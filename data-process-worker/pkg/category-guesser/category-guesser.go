@@ -2,8 +2,8 @@ package categoryguesser
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -15,7 +15,7 @@ type PreDefinedCategory struct {
 
 func loadPreDefinedCategories() ([]*PreDefinedCategory, error) {
 	filePath := "pkg/category-guesser/pre_defined_categories.json"
-	jsonData, err := ioutil.ReadFile(filePath)
+	jsonData, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("Error reading file: %v", err)
 	}
@@ -81,7 +81,7 @@ func isPreDefinedCategory(transactionName string) (bool, string) {
 
 func guessCategoryAI(transactionName string) string {
 	// TODO: Use AI
-	return ""
+	return "Unknown"
 }
 
 func GuessCategory(transactionName string) (string, error) {
