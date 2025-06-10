@@ -17,6 +17,17 @@ services:
     ports:
       - 8081:8080
 
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: frontend/dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - api
+      - login
+
   worker-redis:
     image: "redis"
     ports:
