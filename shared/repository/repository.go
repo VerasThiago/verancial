@@ -21,4 +21,9 @@ type Repository interface {
 
 	MigrateUser(model *models.User) error
 	MigrateTransaction(model *models.Transaction) error
+	MigrateUserBankAccount(model *models.UserBankAccount) error
+	MigrateBankAccount(model *models.BankAccount) error
+
+	GetUserBankAccounts(userId string) ([]*models.UserBankAccount, error)
+	GetUserDashboardStats(userId string) (*models.UserDashboardStats, error)
 }

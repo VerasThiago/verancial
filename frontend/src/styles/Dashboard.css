@@ -1,0 +1,305 @@
+.dashboard-container {
+  min-height: 100vh;
+  background-color: #f5f6fa;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.logout-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.dashboard-content {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stats-overview {
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  max-width: 300px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card h3 {
+  color: #4a5568;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  font-size: 48px;
+  font-weight: 700;
+  color: #2d3748;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bank-accounts-section {
+  margin-bottom: 40px;
+}
+
+.bank-accounts-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 24px;
+}
+
+.empty-state {
+  background: white;
+  border-radius: 16px;
+  padding: 64px 32px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state p {
+  color: #718096;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.bank-accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.bank-account-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bank-account-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.bank-account-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bank-info {
+  margin-bottom: 20px;
+}
+
+.bank-info h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 12px;
+}
+
+.bank-details {
+  display: flex;
+  gap: 8px;
+}
+
+.country-badge,
+.currency-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.country-badge {
+  background-color: #e6fffa;
+  color: #234e52;
+}
+
+.currency-badge {
+  background-color: #f0fff4;
+  color: #22543d;
+}
+
+.transaction-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.stat-item {
+  flex: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.stat-value.outdated {
+  color: #e53e3e;
+}
+
+/* Enhanced styles for different data states */
+.bank-account-card[data-no-transactions="true"] {
+  border-left: 4px solid #ffa726;
+  background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+  position: relative;
+}
+
+.bank-account-card[data-no-transactions="true"]::after {
+  content: '📊';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 24px;
+  opacity: 0.3;
+}
+
+.bank-account-card[data-no-transactions="true"] .stat-value {
+  font-style: italic;
+  color: #f57c00;
+}
+
+.bank-account-card[data-no-transactions="true"]::before {
+  background: linear-gradient(135deg, #ffa726 0%, #ffb74d 100%);
+}
+
+.bank-account-card[data-fresh="true"] {
+  border-left: 4px solid #66bb6a;
+}
+
+.bank-account-card[data-fresh="true"]::before {
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+}
+
+.bank-account-card[data-stale="true"] {
+  border-left: 4px solid #ef5350;
+}
+
+.bank-account-card[data-stale="true"]::before {
+  background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+}
+
+.transaction-count-zero {
+  color: #ff9800 !important;
+  font-weight: 600;
+}
+
+.last-update-fresh {
+  color: #4caf50 !important;
+}
+
+.last-update-stale {
+  color: #f44336 !important;
+}
+
+.warning-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: #fed7d7;
+  color: #c53030;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+  
+  .dashboard-content {
+    padding: 20px;
+  }
+  
+  .bank-accounts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-card {
+    max-width: none;
+  }
+  
+  .transaction-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+} 

@@ -23,20 +23,41 @@ Once you have these installed, follow these steps:
     cd verancial
     ```
 
-3. Build and run the services using the Makefile:
+3. Run the database migrations:
 
     ```
-    make build
-    make run
+    make migrate_db
     ```
+
+4. Build and run the services using the Makefile:
+
+    ```
+    make all_build
+    ```
+
+5. Access the application:
+    - Frontend: http://localhost:3000
+    - API: http://localhost:8080
+    - Login: http://localhost:8081
 
 ## Services
 
 Verancial is a monorepo consisting of the following services:
 
+### Frontend
+
+The Frontend service is a React TypeScript application that provides a modern web interface for users to:
+- Login securely with JWT authentication
+- View dashboard with bank account statistics
+- See transaction counts and data freshness for each connected bank
+- Manage bank account connections
+
 ### API
 
-The API service provides an interface for accessing and managing user financial data.
+The API service provides an interface for accessing and managing user financial data, including:
+- Dashboard statistics endpoints
+- Bank account management
+- Transaction data processing
 
 ### Login
 

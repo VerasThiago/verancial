@@ -22,6 +22,12 @@ start_login_local:
 start_login_docker:
 	docker-compose up login
 
+start_frontend_local:
+	cd frontend && npm run dev
+
+start_frontend_docker:
+	docker-compose up frontend
+
 start_redis:
 	docker-compose up -d worker-redis
 
