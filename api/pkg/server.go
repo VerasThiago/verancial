@@ -13,6 +13,7 @@ type Server struct {
 
 	ReportProcessor handlers.ReportProcessorAPI
 	AppIntegration  handlers.AppIntegrationAPI
+	Dashboard       handlers.DashboardAPI
 
 	AuthAPI middlewares.AuthUserAPI
 }
@@ -21,6 +22,7 @@ func (s *Server) InitFromBuilder(builder builder.Builder) *Server {
 	s.Builder = builder
 	s.ReportProcessor = new(handlers.ReportProcessorHandler).InitFromBuilder(builder)
 	s.AppIntegration = new(handlers.AppIntegrationHandler).InitFromBuilder(builder)
+	s.Dashboard = new(handlers.DashboardHandler).InitFromBuilder(builder)
 
 	s.AuthAPI = new(middlewares.AuthUserHandler).InitFromFlags(builder.GetFlags(), builder.GetSharedFlags())
 	return s
@@ -35,6 +37,7 @@ func (s *Server) Run() error {
 		{
 			apiV0.POST("report-processor", errors.ErrorRoute(s.ReportProcessor.Handler))
 			apiV0.POST("app-integration", errors.ErrorRoute(s.AppIntegration.Handler))
+			apiV0.GET("dashboard", errors.ErrorRoute(s.Dashboard.GetUserDashboard))
 		}
 	}
 	return app.Run(":" + s.GetFlags().Port)
