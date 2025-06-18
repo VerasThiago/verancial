@@ -11,6 +11,7 @@ const Bank: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
     loadBankData();
@@ -178,49 +179,57 @@ const Bank: React.FC = () => {
               </span>
             </div>
           </div>
+          <button className="upload-modal-trigger" onClick={() => setShowUploadModal(true)}>
+            Upload Statement
+          </button>
         </div>
 
-        <div className="upload-section">
-          <h2>Upload Statement</h2>
-          <p>Upload your CSV bank statement to update transaction data</p>
-          
-          <div className="upload-area">
-            <input
-              type="file"
-              id="statement-upload"
-              accept=".csv"
-              onChange={handleFileSelect}
-              disabled={isUploading}
-              className="file-input"
-            />
-            <label htmlFor="statement-upload" className={`upload-button ${isUploading || selectedFile ? 'has-file' : ''}`}>
-              {selectedFile ? selectedFile.name : 'Choose CSV File'}
-            </label>
-            
-            {selectedFile && (
-              <div className="file-actions">
-                <button 
-                  onClick={handleUpload} 
-                  disabled={isUploading}
-                  className={`upload-submit-button ${isUploading ? 'uploading' : ''}`}
-                >
-                  {isUploading ? 'Uploading...' : 'Upload Statement'}
-                </button>
-                <button 
-                  onClick={handleCancelUpload} 
-                  disabled={isUploading}
-                  className="cancel-button"
-                >
-                  Cancel
-                </button>
+        {/* Modal Dialog for Upload */}
+        {showUploadModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <button className="modal-close" onClick={() => { setShowUploadModal(false); handleCancelUpload(); }}>&times;</button>
+              <div className="upload-section modal-upload-section">
+                <h2>Upload Statement</h2>
+                <p>Upload your CSV bank statement to update transaction data</p>
+                <div className="upload-area">
+                  <input
+                    type="file"
+                    id="statement-upload"
+                    accept=".csv"
+                    onChange={handleFileSelect}
+                    disabled={isUploading}
+                    className="file-input"
+                  />
+                  <label htmlFor="statement-upload" className={`upload-button ${isUploading || selectedFile ? 'has-file' : ''}`}>
+                    {selectedFile ? selectedFile.name : 'Choose CSV File'}
+                  </label>
+                  {selectedFile && (
+                    <div className="file-actions">
+                      <button 
+                        onClick={async () => { await handleUpload(); setShowUploadModal(false); }} 
+                        disabled={isUploading}
+                        className={`upload-submit-button ${isUploading ? 'uploading' : ''}`}
+                      >
+                        {isUploading ? 'Uploading...' : 'Upload Statement'}
+                      </button>
+                      <button 
+                        onClick={handleCancelUpload} 
+                        disabled={isUploading}
+                        className="cancel-button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="upload-note">
+                  <p><strong>Note:</strong> Please upload CSV files only. The file should contain your bank statement data.</p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
-
-          <div className="upload-note">
-            <p><strong>Note:</strong> Please upload CSV files only. The file should contain your bank statement data.</p>
-          </div>
-        </div>
+        )}
       </main>
     </div>
   );

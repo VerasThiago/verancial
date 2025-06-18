@@ -330,4 +330,91 @@
   .upload-area {
     padding: 24px;
   }
+}
+
+.upload-modal-trigger {
+  margin-top: 24px;
+  margin-left: auto;
+  display: block;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+  transition: all 0.2s;
+}
+.upload-modal-trigger:hover {
+  background: linear-gradient(135deg, #388e3c 0%, #43a047 100%);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(44, 62, 80, 0.25);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(44, 62, 80, 0.18);
+  padding: 0 0 32px 0;
+  min-width: 340px;
+  max-width: 95vw;
+  width: 420px;
+  position: relative;
+  animation: modalPop 0.2s;
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #aaa;
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.2s;
+}
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-upload-section {
+  box-shadow: none;
+  border-radius: 0;
+  padding: 32px 32px 0 32px;
+  margin: 0;
+  background: none;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    min-width: 0;
+    width: 98vw;
+    padding: 0 0 16px 0;
+  }
+  .modal-upload-section {
+    padding: 20px 8px 0 8px;
+  }
 } 
