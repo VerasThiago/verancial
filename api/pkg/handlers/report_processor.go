@@ -4,7 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+
+	"encoding/base64"
 
 	"github.com/gin-gonic/gin"
 	"github.com/verasthiago/verancial/api/pkg/builder"
@@ -14,7 +19,9 @@ import (
 
 type Request struct {
 	UserId          string `json:"userid"`
-	FilePath        string `json:"filepath"`
+	FilePath        string `json:"filepath,omitempty"` // Used internally for DPW service
+	FileData        string `json:"filedata,omitempty"` // Base64 encoded CSV content from web uploads
+	FileName        string `json:"filename,omitempty"` // Original filename from web uploads
 	BankId          string `json:"bankid"`
 	AsyncProcessing bool   `json:"asyncprocessing"`
 }
@@ -41,21 +48,49 @@ func (r *ReportProcessorHandler) Handler(context *gin.Context) error {
 
 	fmt.Printf("\n[API] Request: %+v\n\n", request)
 
-	if request.AsyncProcessing {
-		return r.SendAsyncRequest(request, context)
+	// Process the uploaded file
+	tempFilePath, err := r.handleFileUpload(request)
+	if err != nil {
+		return err
 	}
 
-	return r.SendSyncRequest(request, context)
+	if request.AsyncProcessing {
+		return r.processAsync(request, tempFilePath, context)
+	}
+
+	return r.processSync(request, tempFilePath, context)
 }
 
-func (r *ReportProcessorHandler) SendAsyncRequest(request Request, context *gin.Context) error {
-	var err error
+func (r *ReportProcessorHandler) handleFileUpload(request Request) (string, error) {
+	if request.FileData == "" {
+		return "", fmt.Errorf("file data is required for web uploads")
+	}
 
-	if err = r.GetTask().CreateReportAsync(types.ReportProcessQueuePayload{
+	// Decode base64 file data
+	fileData, err := base64.StdEncoding.DecodeString(request.FileData)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode file data: %v", err)
+	}
+
+	// Create temporary file
+	tempDir := os.TempDir()
+	tempFilePath := filepath.Join(tempDir, fmt.Sprintf("upload_%s_%s", request.UserId, request.FileName))
+
+	// Write decoded data to temporary file
+	if err := ioutil.WriteFile(tempFilePath, fileData, 0644); err != nil {
+		return "", fmt.Errorf("failed to write temporary file: %v", err)
+	}
+
+	return tempFilePath, nil
+}
+
+func (r *ReportProcessorHandler) processAsync(request Request, tempFilePath string, context *gin.Context) error {
+	err := r.GetTask().CreateReportAsync(types.ReportProcessQueuePayload{
 		UserId:   request.UserId,
 		BankId:   constants.BankId(request.BankId),
-		FilePath: request.FilePath,
-	}); err != nil {
+		FilePath: tempFilePath,
+	})
+	if err != nil {
 		return err
 	}
 
@@ -63,8 +98,19 @@ func (r *ReportProcessorHandler) SendAsyncRequest(request Request, context *gin.
 	return nil
 }
 
-func (r *ReportProcessorHandler) SendSyncRequest(request Request, context *gin.Context) error {
-	jsonData, err := json.Marshal(request)
+func (r *ReportProcessorHandler) processSync(request Request, tempFilePath string, context *gin.Context) error {
+	// Clean up temporary file after processing
+	defer os.Remove(tempFilePath)
+
+	// Prepare request for DPW service
+	dpwRequest := Request{
+		UserId:          request.UserId,
+		FilePath:        tempFilePath,
+		BankId:          request.BankId,
+		AsyncProcessing: false,
+	}
+
+	jsonData, err := json.Marshal(dpwRequest)
 	if err != nil {
 		return err
 	}
