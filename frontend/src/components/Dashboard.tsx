@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiService, { UserDashboardStats, BankAccountStat } from '../services/api';
 import '../styles/Dashboard.css';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [dashboardStats, setDashboardStats] = useState<UserDashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,10 +104,11 @@ const Dashboard: React.FC = () => {
                 return (
                   <div 
                     key={stat.bank_account.id} 
-                    className="bank-account-card"
+                    className="bank-account-card clickable"
                     data-no-transactions={hasNoTransactions}
                     data-fresh={isFresh && !hasNoTransactions}
                     data-stale={isStale}
+                    onClick={() => navigate(`/bank/${stat.bank_account.id}`)}
                   >
                     <div className="bank-info">
                       <h3>{stat.bank_account.display_name}</h3>

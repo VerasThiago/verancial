@@ -128,6 +128,15 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
+.bank-account-card.clickable {
+  cursor: pointer;
+}
+
+.bank-account-card.clickable:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
 .bank-account-card::before {
   content: '';
   position: absolute;
@@ -135,7 +144,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
 }
 
 .bank-info {
@@ -150,38 +159,45 @@
 }
 
 .bank-details {
-  display: flex;
-  gap: 8px;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+  flex-wrap: nowrap !important;
 }
 
 .country-badge,
 .currency-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  display: inline-block !important;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .country-badge {
-  background-color: #e6fffa;
-  color: #234e52;
+  background-color: #e0f2f1;
+  color: #2e7d32;
 }
 
 .currency-badge {
-  background-color: #f0fff4;
-  color: #22543d;
+  background-color: #e8f5e8;
+  color: #2e7d32;
 }
 
 .transaction-stats {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
 .stat-item {
-  flex: 1;
+  text-align: left;
 }
 
 .stat-label {
@@ -230,13 +246,7 @@
   background: linear-gradient(135deg, #ffa726 0%, #ffb74d 100%);
 }
 
-.bank-account-card[data-fresh="true"] {
-  border-left: 4px solid #66bb6a;
-}
-
-.bank-account-card[data-fresh="true"]::before {
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-}
+/* Fresh and normal cards already have green styling by default */
 
 .bank-account-card[data-stale="true"] {
   border-left: 4px solid #ef5350;
@@ -252,7 +262,7 @@
 }
 
 .last-update-fresh {
-  color: #4caf50 !important;
+  color: #2e7d32 !important;
 }
 
 .last-update-stale {

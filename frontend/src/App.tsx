@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import Bank from './components/Bank';
 import apiService from './services/api';
 import './styles/App.css';
 
@@ -20,6 +21,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/bank/:bankId" 
+            element={
+              <ProtectedRoute>
+                <Bank />
               </ProtectedRoute>
             } 
           />

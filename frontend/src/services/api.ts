@@ -37,6 +37,12 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface UploadStatementRequest {
+  bankId: string;
+  fileName: string;
+  fileData: string; // Base64 encoded CSV content
+}
+
 class ApiService {
   private api: AxiosInstance;
 
@@ -101,6 +107,35 @@ class ApiService {
   async getDashboardStats(): Promise<UserDashboardStats> {
     const response: AxiosResponse<ApiResponse<UserDashboardStats>> = await this.api.get('/dashboard');
     return response.data.data!;
+  }
+
+  async uploadStatement(request: UploadStatementRequest): Promise<void> {
+    // Get the current user token to extract user ID
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    // Decode JWT token to get user ID (simple base64 decode of payload)
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    
+    // Based on the Go JWT structure: JWTClaim has User field with ID
+    const userId = payload.User?.id;
+
+    if (!userId) {
+      console.error('JWT payload structure:', payload);
+      throw new Error('User ID not found in token. Expected User.id field.');
+    }
+
+    const reportRequest = {
+      userid: userId,
+      filedata: request.fileData,
+      filename: request.fileName,
+      bankid: request.bankId,
+      asyncprocessing: false
+    };
+
+    await this.api.post('/report-processor', reportRequest);
   }
 
 
