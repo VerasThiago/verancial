@@ -37,6 +37,14 @@ func (a *AuthUserHandler) Handler() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
+
+		jwtClaim, err := auth.GetJWTClaimFromToken(tokenString, a.JwtKey)
+		if err != nil {
+			context.JSON(401, gin.H{"error": "invalid token"})
+			context.Abort()
+			return
+		}
+		context.Set("user", jwtClaim.User)
 		context.Next()
 	}
 }

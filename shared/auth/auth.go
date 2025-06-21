@@ -27,21 +27,9 @@ func GenerateJWT(user *models.User, jwtKey string, expirationTime time.Time) (st
 }
 
 func ValidateToken(signedToken, jwtKey string) error {
-	token, err := jwt.ParseWithClaims(
-		signedToken,
-		&JWTClaim{},
-		func(token *jwt.Token) (interface{}, error) {
-			return []byte(jwtKey), nil
-		},
-	)
-
+	claims, err := GetJWTClaimFromToken(signedToken, jwtKey)
 	if err != nil {
 		return err
-	}
-
-	claims, ok := token.Claims.(*JWTClaim)
-	if !ok {
-		return errors.New("couldn't parse claims")
 	}
 
 	if claims.ExpiresAt < time.Now().Local().Unix() {
