@@ -13,7 +13,7 @@ import (
 type AppReport interface {
 	Generate(transactions []*models.Transaction) (types.AppReport, error)
 	Submit(user *models.User, appReport types.AppReport) error
-	GetLastTransaction(financialAppCredentials *models.FinancialAppCredentials, bankId constants.BankId, lastTransactionDate string) (time.Time, error)
+	GetLastTransaction(financialAppCredentials *models.FinancialAppCredentials, bankId string, lastTransactionDate string) (time.Time, error)
 }
 
 func GetAppReportGenerator(appName constants.AppID) (AppReport, error) {

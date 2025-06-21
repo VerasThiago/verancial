@@ -8,7 +8,6 @@ import (
 
 	"github.com/verasthiago/verancial/app-integration-worker/pkg/generators/helper"
 	"github.com/verasthiago/verancial/app-integration-worker/pkg/types"
-	"github.com/verasthiago/verancial/shared/constants"
 	"github.com/verasthiago/verancial/shared/models"
 )
 
@@ -52,7 +51,7 @@ func (b BudgetBakers) Submit(user *models.User, appReport types.AppReport) error
 	return nil
 }
 
-func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.FinancialAppCredentials, bankId constants.BankId, lastTransactionDate string) (time.Time, error) {
+func (b BudgetBakers) GetLastTransaction(financialAppCredentials *models.FinancialAppCredentials, bankId string, lastTransactionDate string) (time.Time, error) {
 	var err error
 	var lastTransactionTime time.Time
 
