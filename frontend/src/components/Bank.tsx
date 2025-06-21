@@ -1,38 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import apiService, { BankAccountStat } from '../services/api';
+import apiService, { BankAccountStat, Transaction } from '../services/api';
 import '../styles/Bank.css';
 
 const Bank: React.FC = () => {
   const { bankId } = useParams<{ bankId: string }>();
   const navigate = useNavigate();
   const [bankData, setBankData] = useState<BankAccountStat | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(50);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     loadBankData();
   }, [bankId]);
 
+  useEffect(() => {
+    loadTransactions();
+  }, [bankId, currentPage]);
+
   const loadBankData = async () => {
     try {
       setIsLoading(true);
-      const stats = await apiService.getDashboardStats();
-      const bank = stats.bank_account_stats.find(stat => stat.bank_account.id === bankId);
-      
-      if (!bank) {
-        setError('Bank account not found');
-        return;
-      }
-      
+      const bank = await apiService.getBankStats(bankId!);
       setBankData(bank);
     } catch (err: any) {
       setError('Failed to load bank data. Please try again.');
       console.error('Bank data error:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadTransactions = async () => {
+    if (!bankId) return;
+    
+    try {
+      setIsLoadingTransactions(true);
+      console.log('Loading transactions for bankId:', bankId);
+      const data = await apiService.listTransactions({
+        bankId,
+        page: currentPage,
+        pageSize,
+        uncategorized: true
+      });
+      setTransactions(data);
+    } catch (err: any) {
+      console.error('Failed to load transactions:', err);
+    } finally {
+      setIsLoadingTransactions(false);
     }
   };
 
@@ -54,6 +77,13 @@ const Bank: React.FC = () => {
     setSelectedFile(file);
   };
 
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000); // Hide after 3 seconds
+  };
+
   const handleUpload = async () => {
     if (!selectedFile) return;
 
@@ -68,16 +98,20 @@ const Bank: React.FC = () => {
         fileName: selectedFile.name,
         fileData: base64Content
       });
-
-      alert('Statement uploaded successfully!');
       
       // Reset file selection
       setSelectedFile(null);
       const fileInput = document.getElementById('statement-upload') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
       
-      // Refresh bank data
-      await loadBankData();
+      // Show success message
+      showSuccessMessage('Statement uploaded successfully! Refreshing data...');
+      
+      // Refresh both bank data and transactions
+      await Promise.all([
+        loadBankData(),
+        loadTransactions()
+      ]);
       
     } catch (err: any) {
       console.error('Upload error:', err);
@@ -122,6 +156,10 @@ const Bank: React.FC = () => {
     return `${days} days ago (stale)`;
   };
 
+  const handleCategoryChange = (transactionId: string, category: string) => {
+    // Implement category change logic
+  };
+
   if (isLoading) {
     return (
       <div className="bank-container">
@@ -143,6 +181,11 @@ const Bank: React.FC = () => {
 
   return (
     <div className="bank-container">
+      {successMessage && (
+        <div className="success-message">
+          {successMessage}
+        </div>
+      )}
       <header className="bank-header">
         <button onClick={() => navigate('/dashboard')} className="back-button">
           ← Back to Dashboard
@@ -178,49 +221,116 @@ const Bank: React.FC = () => {
               </span>
             </div>
           </div>
+          <button className="upload-modal-trigger" onClick={() => setShowUploadModal(true)}>
+            Upload Statement
+          </button>
         </div>
 
-        <div className="upload-section">
-          <h2>Upload Statement</h2>
-          <p>Upload your CSV bank statement to update transaction data</p>
-          
-          <div className="upload-area">
-            <input
-              type="file"
-              id="statement-upload"
-              accept=".csv"
-              onChange={handleFileSelect}
-              disabled={isUploading}
-              className="file-input"
-            />
-            <label htmlFor="statement-upload" className={`upload-button ${isUploading || selectedFile ? 'has-file' : ''}`}>
-              {selectedFile ? selectedFile.name : 'Choose CSV File'}
-            </label>
-            
-            {selectedFile && (
-              <div className="file-actions">
-                <button 
-                  onClick={handleUpload} 
-                  disabled={isUploading}
-                  className={`upload-submit-button ${isUploading ? 'uploading' : ''}`}
+        <div className="transactions-section">
+          <h2>Uncategorized Transactions</h2>
+          {isLoadingTransactions ? (
+            <div className="loading">Loading transactions...</div>
+          ) : transactions.length === 0 ? (
+            <div className="no-transactions">No uncategorized transactions found</div>
+          ) : (
+            <>
+              <div className="transactions-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Amount</th>
+                      <th>Category</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((transaction) => (
+                      <tr key={transaction.id}>
+                        <td>{new Date(transaction.date).toLocaleDateString()}</td>
+                        <td>{transaction.description}</td>
+                        <td className={transaction.amount < 0 ? 'negative' : 'positive'}>
+                          {formatCurrency(transaction.currency)}{Math.abs(transaction.amount).toFixed(2)}
+                        </td>
+                        <td>
+                          <select
+                            value={transaction.category || ''}
+                            onChange={(e) => handleCategoryChange(transaction.id, e.target.value)}
+                          >
+                            <option value="">Select category</option>
+                            {/* TODO: Add category options */}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="pagination">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
                 >
-                  {isUploading ? 'Uploading...' : 'Upload Statement'}
+                  Previous
                 </button>
-                <button 
-                  onClick={handleCancelUpload} 
-                  disabled={isUploading}
-                  className="cancel-button"
+                <span>Page {currentPage}</span>
+                <button
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={transactions.length < pageSize}
                 >
-                  Cancel
+                  Next
                 </button>
               </div>
-            )}
-          </div>
-
-          <div className="upload-note">
-            <p><strong>Note:</strong> Please upload CSV files only. The file should contain your bank statement data.</p>
-          </div>
+            </>
+          )}
         </div>
+
+        {/* Modal Dialog for Upload */}
+        {showUploadModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <button className="modal-close" onClick={() => { setShowUploadModal(false); handleCancelUpload(); }}>&times;</button>
+              <div className="upload-section modal-upload-section">
+                <h2>Upload Statement</h2>
+                <p>Upload your CSV bank statement to update transaction data</p>
+                <div className="upload-area">
+                  <input
+                    type="file"
+                    id="statement-upload"
+                    accept=".csv"
+                    onChange={handleFileSelect}
+                    disabled={isUploading}
+                    className="file-input"
+                  />
+                  <label htmlFor="statement-upload" className={`upload-button ${isUploading || selectedFile ? 'has-file' : ''}`}>
+                    {selectedFile ? selectedFile.name : 'Choose CSV File'}
+                  </label>
+                  {selectedFile && (
+                    <div className="file-actions">
+                      <button 
+                        onClick={async () => { await handleUpload(); setShowUploadModal(false); }} 
+                        disabled={isUploading}
+                        className={`upload-submit-button ${isUploading ? 'uploading' : ''}`}
+                      >
+                        {isUploading ? 'Uploading...' : 'Upload Statement'}
+                      </button>
+                      <button 
+                        onClick={handleCancelUpload} 
+                        disabled={isUploading}
+                        className="cancel-button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="upload-note">
+                  <p><strong>Note:</strong> Please upload CSV files only. The file should contain your bank statement data.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

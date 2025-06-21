@@ -83,7 +83,7 @@ func (a *AppIntegrationHandler) HandlerAsync(request AppIntegrationRequest, cont
 	if err := a.GetTask().UpdateAppAsync(types.AppIntegrationQueuePayload{
 		UserId:              request.UserId,
 		AppID:               constants.AppID(request.AppID),
-		BankId:              constants.BankId(request.BankId),
+		BankId:              string(request.BankId),
 		LastTransactionDate: request.LastTransactionData,
 	}); err != nil {
 		return err

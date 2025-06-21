@@ -81,7 +81,7 @@ func isPreDefinedCategory(transactionName string) (bool, string) {
 
 func guessCategoryAI(transactionName string) string {
 	// TODO: Use AI
-	return "Unknown"
+	return ""
 }
 
 func GuessCategory(transactionName string) (string, error) {

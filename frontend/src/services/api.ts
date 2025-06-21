@@ -43,6 +43,30 @@ export interface UploadStatementRequest {
   fileData: string; // Base64 encoded CSV content
 }
 
+export interface Transaction {
+  id: string;
+  date: string;
+  amount: number;
+  payee: string;
+  description: string;
+  category: string;
+  currency: string;
+  bankid: string;
+  metadata: Record<string, string>;
+}
+
+export interface ListTransactionsRequest {
+  bankId: string;
+  page?: number;
+  pageSize?: number;
+  uncategorized?: boolean;
+}
+
+export interface ListTransactionsResponse {
+  status: string;
+  data: Transaction[];
+}
+
 class ApiService {
   private api: AxiosInstance;
 
@@ -105,7 +129,12 @@ class ApiService {
 
   // Dashboard methods
   async getDashboardStats(): Promise<UserDashboardStats> {
-    const response: AxiosResponse<ApiResponse<UserDashboardStats>> = await this.api.get('/dashboard');
+    const response: AxiosResponse<ApiResponse<UserDashboardStats>> = await this.api.get('/dashboard/user');
+    return response.data.data!;
+  }
+
+  async getBankStats(bankId: string): Promise<BankAccountStat> {
+    const response: AxiosResponse<ApiResponse<BankAccountStat>> = await this.api.get(`/bank/${bankId}`);
     return response.data.data!;
   }
 
@@ -135,12 +164,28 @@ class ApiService {
       asyncprocessing: false
     };
 
-    await this.api.post('/report-processor', reportRequest);
+    await this.api.post('/report/process', reportRequest);
   }
 
+  // Transaction methods
+  async listTransactions(request: ListTransactionsRequest): Promise<Transaction[]> {
+    // Ensure bankId is a clean UUID without any extra characters
+    const cleanUUID = request.bankId.replace(/[^a-fA-F0-9-]/g, '');
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanUUID)) {
+      throw new Error('Invalid bank ID format. Must be a valid UUID.');
+    }
+    
+    const params = new URLSearchParams({
+      ...(request.page && { page: request.page.toString() }),
+      ...(request.pageSize && { pageSize: request.pageSize.toString() }),
+      ...(request.uncategorized && { uncategorized: request.uncategorized.toString() }),
+    });
 
-
-
+    const response: AxiosResponse<ListTransactionsResponse> = await this.api.get(
+      `/transaction/list/${cleanUUID}?${params.toString()}`
+    );
+    return response.data.data;
+  }
 
   // Token management
   private setToken(token: string): void {

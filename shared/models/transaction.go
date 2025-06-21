@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/verasthiago/verancial/shared/constants"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +21,7 @@ type Transaction struct {
 	Description string              `json:"description"`
 	Category    string              `json:"category"`
 	Currency    string              `json:"currency"`
-	BankId      constants.BankId    `json:"bankid"`
+	BankId      string              `json:"bank_id" gorm:"type:uuid"`
 	Metadata    TransactionMetadata `json:"metadata" gorm:"type:jsonb"`
 	Fingerprint string              `json:"fingerprint" gorm:"uniqueIndex:idx_transaction_fingerprint"`
 }
@@ -60,4 +59,8 @@ func (t *Transaction) SetFingerprint() {
 
 	hash := sha256.Sum256([]byte(fingerprintData))
 	t.Fingerprint = fmt.Sprintf("%x", hash)
+}
+
+type TransactionFilter struct {
+	Uncategorized bool
 }

@@ -3,7 +3,6 @@ package repository
 import (
 	"time"
 
-	"github.com/verasthiago/verancial/shared/constants"
 	"github.com/verasthiago/verancial/shared/models"
 )
 
@@ -16,8 +15,9 @@ type Repository interface {
 
 	CreateTransactionInBatches(transacions []*models.Transaction) error
 	CreateUniqueTransactionInBatches(transactions []*models.Transaction) error
-	GetAllTransactionsFromUserBankAfterDate(userId string, BankId constants.BankId, lastTransaction time.Time) ([]*models.Transaction, error)
-	GetLastTransactionFromUserBank(userId string, BankId constants.BankId) (*models.Transaction, error)
+	GetAllTransactionsFromUserBankAfterDate(userId string, BankId string, lastTransaction time.Time) ([]*models.Transaction, error)
+	GetLastTransactionFromUserBank(userId string, BankId string) (*models.Transaction, error)
+	GetTransactionCountFromUserBank(userId string, BankId string) (int, error)
 
 	MigrateUser(model *models.User) error
 	MigrateTransaction(model *models.Transaction) error
@@ -26,4 +26,7 @@ type Repository interface {
 
 	GetUserBankAccounts(userId string) ([]*models.UserBankAccount, error)
 	GetUserDashboardStats(userId string) (*models.UserDashboardStats, error)
+	GetBankAccountById(bankId string, userId string) (*models.BankAccount, error)
+
+	GetTransactions(userId string, bankId string, limit, offset int, filter *models.TransactionFilter) ([]*models.Transaction, error)
 }

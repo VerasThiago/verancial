@@ -41,12 +41,12 @@ func (p *PostgresRepository) GetUserDashboardStats(userId string) (*models.UserD
 		var lastTransaction *models.Transaction
 
 		if err := p.db.Model(&models.Transaction{}).
-			Where("user_id = ? AND bank_id = ?", userId, userBankAccount.BankAccountId).
+			Where("user_id = ? AND bank_id = ?", userId, userBankAccount.BankId).
 			Count(&transactionCount).Error; err != nil {
 			return nil, err
 		}
 
-		if err := p.db.Where("user_id = ? AND bank_id = ?", userId, userBankAccount.BankAccountId).
+		if err := p.db.Where("user_id = ? AND bank_id = ?", userId, userBankAccount.BankId).
 			Order("date desc").
 			First(&lastTransaction).Error; err != nil {
 			if !errors.IsNotFoundError(err) {
@@ -74,4 +74,15 @@ func (p *PostgresRepository) GetUserDashboardStats(userId string) (*models.UserD
 	}
 
 	return stats, nil
+}
+
+func (p *PostgresRepository) GetBankAccountById(bankId string, userId string) (*models.BankAccount, error) {
+	var userBankAccount models.UserBankAccount
+	err := p.db.Where("bank_id = ? AND user_id = ? AND is_active = ?", bankId, userId, true).
+		Preload("BankAccount").
+		First(&userBankAccount).Error
+	if err != nil {
+		return nil, errors.HandleDataNotFoundError(err, "BANK_ACCOUNT")
+	}
+	return &userBankAccount.BankAccount, nil
 }

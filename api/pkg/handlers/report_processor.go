@@ -13,7 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/verasthiago/verancial/api/pkg/builder"
-	"github.com/verasthiago/verancial/shared/constants"
 	"github.com/verasthiago/verancial/shared/types"
 )
 
@@ -45,8 +44,6 @@ func (r *ReportProcessorHandler) Handler(context *gin.Context) error {
 	if err := context.ShouldBindJSON(&request); err != nil {
 		return err
 	}
-
-	fmt.Printf("\n[API] Request: %+v\n\n", request)
 
 	// Process the uploaded file
 	tempFilePath, err := r.handleFileUpload(request)
@@ -87,7 +84,7 @@ func (r *ReportProcessorHandler) handleFileUpload(request Request) (string, erro
 func (r *ReportProcessorHandler) processAsync(request Request, tempFilePath string, context *gin.Context) error {
 	err := r.GetTask().CreateReportAsync(types.ReportProcessQueuePayload{
 		UserId:   request.UserId,
-		BankId:   constants.BankId(request.BankId),
+		BankId:   string(request.BankId),
 		FilePath: tempFilePath,
 	})
 	if err != nil {
