@@ -1,0 +1,68 @@
+name: Go CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  go-test:
+    name: ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - api
+          - app-integration-worker
+          - data-process-worker
+          - login
+          - shared
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+          cache: true
+          cache-dependency-path: |
+            api/go.sum
+            app-integration-worker/go.sum
+            data-process-worker/go.sum
+            login/go.sum
+            shared/go.sum
+
+      - name: go build
+        working-directory: ${{ matrix.module }}
+        run: go build ./...
+
+      - name: go vet
+        working-directory: ${{ matrix.module }}
+        run: go vet ./...
+
+      - name: go test (race + coverage)
+        working-directory: ${{ matrix.module }}
+        run: go test ./... -race -coverprofile=coverage.out
+
+      - name: Coverage summary
+        if: always()
+        working-directory: ${{ matrix.module }}
+        run: |
+          if [ -f coverage.out ]; then
+            go tool cover -func=coverage.out | tail -1
+            go tool cover -func=coverage.out
+          else
+            echo "No coverage.out generated for ${{ matrix.module }}"
+          fi
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.module }}
+          path: ${{ matrix.module }}/coverage.out
+          if-no-files-found: ignore
