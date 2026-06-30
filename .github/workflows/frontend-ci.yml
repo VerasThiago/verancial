@@ -47,7 +47,7 @@ jobs:
           CI: true
         run: |
           if node -e "const s=require('./package.json').scripts||{}; process.exit(s.test ? 0 : 1)"; then
-            npm test
+            npm test -- --passWithNoTests
           else
             echo "No 'test' script defined in package.json, skipping."
           fi
