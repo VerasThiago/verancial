@@ -36,36 +36,50 @@ func (p *PostgresRepository) GetUserDashboardStats(userId string) (*models.UserD
 		BankAccountStats:  make([]models.BankAccountStat, 0, len(userBankAccounts)),
 	}
 
+	if len(userBankAccounts) == 0 {
+		return stats, nil
+	}
+
+	// Single aggregate query for all bank accounts instead of N+1 queries
+	// (one COUNT + one "last transaction" query per bank account).
+	type aggRow struct {
+		BankId       string
+		Count        int64
+		LastTransDate *time.Time
+	}
+	var aggRows []aggRow
+	if err := p.db.Model(&models.Transaction{}).
+		Select("bank_id, COUNT(*) as count, MAX(date) as last_trans_date").
+		Where("user_id = ?", userId).
+		Group("bank_id").
+		Scan(&aggRows).Error; err != nil {
+		return nil, err
+	}
+
+	statsByBankId := make(map[string]aggRow, len(aggRows))
+	for _, row := range aggRows {
+		statsByBankId[row.BankId] = row
+	}
+
 	for _, userBankAccount := range userBankAccounts {
-		var transactionCount int64
-		var lastTransaction *models.Transaction
-
-		if err := p.db.Model(&models.Transaction{}).
-			Where("user_id = ? AND bank_id = ?", userId, userBankAccount.BankId).
-			Count(&transactionCount).Error; err != nil {
-			return nil, err
-		}
-
-		if err := p.db.Where("user_id = ? AND bank_id = ?", userId, userBankAccount.BankId).
-			Order("date desc").
-			First(&lastTransaction).Error; err != nil {
-			if !errors.IsNotFoundError(err) {
-				return nil, err
-			}
-		}
+		row, found := statsByBankId[userBankAccount.BankId]
 
 		var daysOutdated *int
 		var lastTransactionTime *time.Time
+		var transactionCount int
 
-		if lastTransaction != nil {
-			lastTransactionTime = &lastTransaction.Date
-			days := int(time.Since(lastTransaction.Date).Hours() / 24)
-			daysOutdated = &days
+		if found {
+			transactionCount = int(row.Count)
+			if row.LastTransDate != nil {
+				lastTransactionTime = row.LastTransDate
+				days := int(time.Since(*row.LastTransDate).Hours() / 24)
+				daysOutdated = &days
+			}
 		}
 
 		bankAccountStat := models.BankAccountStat{
 			BankAccount:      userBankAccount.BankAccount,
-			TransactionCount: int(transactionCount),
+			TransactionCount: transactionCount,
 			LastTransaction:  lastTransactionTime,
 			DaysOutdated:     daysOutdated,
 		}

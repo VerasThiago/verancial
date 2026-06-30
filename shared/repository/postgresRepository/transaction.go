@@ -8,8 +8,15 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// transactionBatchSize bounds how many rows are sent per INSERT statement.
+// Previously CreateInBatches was called with len(transactions) as the batch
+// size, which meant every call inserted the entire slice in a single batch
+// (no batching at all). For large bank-statement imports that produces one
+// huge INSERT, risking Postgres' parameter limit and large memory spikes.
+const transactionBatchSize = 200
+
 func (p *PostgresRepository) CreateTransactionInBatches(transactions []*models.Transaction) error {
-	return errors.HandleDuplicateError(p.db.CreateInBatches(transactions, len(transactions)).Error)
+	return errors.HandleDuplicateError(p.db.CreateInBatches(transactions, transactionBatchSize).Error)
 }
 
 func (p *PostgresRepository) CreateUniqueTransactionInBatches(transactions []*models.Transaction) error {
@@ -22,7 +29,7 @@ func (p *PostgresRepository) CreateUniqueTransactionInBatches(transactions []*mo
 			{Name: "fingerprint"},
 		},
 		DoNothing: true,
-	}).CreateInBatches(transactions, len(transactions)).Error)
+	}).CreateInBatches(transactions, transactionBatchSize).Error)
 }
 
 func (p *PostgresRepository) MigrateTransaction(model *models.Transaction) error {
