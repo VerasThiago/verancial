@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/verasthiago/verancial/api/pkg/builder"
+	"github.com/verasthiago/verancial/shared/auth"
 	"github.com/verasthiago/verancial/shared/models"
 )
 
@@ -25,7 +26,10 @@ func (h *BankStatsHandler) InitFromBuilder(builder builder.Builder) *BankStatsHa
 
 func (h *BankStatsHandler) Handler(context *gin.Context) error {
 	userObj, _ := context.Get("user")
-	user, _ := userObj.(*models.User)
+	user, ok := userObj.(*auth.UserClaims)
+	if !ok || user == nil {
+		return fmt.Errorf("unauthorized")
+	}
 
 	bankId := context.Param("bankId")
 	if bankId == "" {

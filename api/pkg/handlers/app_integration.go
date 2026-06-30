@@ -8,12 +8,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/verasthiago/verancial/api/pkg/builder"
+	"github.com/verasthiago/verancial/shared/auth"
 	"github.com/verasthiago/verancial/shared/constants"
 	"github.com/verasthiago/verancial/shared/types"
 )
 
 type AppIntegrationRequest struct {
-	UserId              string `json:"userid"`
+	// UserId is intentionally not read from client input. It is derived
+	// from the authenticated JWT to prevent IDOR (a user requesting
+	// integration data/actions on another user's behalf).
+	UserId              string `json:"-"`
 	AppID               string `json:"appid"`
 	BankId              string `json:"bankid"`
 	LastTransactionData string `json:"lasttransactiondate"`
@@ -38,7 +42,13 @@ func (a *AppIntegrationHandler) Handler(context *gin.Context) error {
 	if err := context.ShouldBindJSON(&request); err != nil {
 		return err
 	}
-	fmt.Printf("\nrequest %+v\n", request)
+
+	userObj, _ := context.Get("user")
+	user, ok := userObj.(*auth.UserClaims)
+	if !ok || user == nil || user.ID == "" {
+		return fmt.Errorf("unauthorized")
+	}
+	request.UserId = user.ID
 
 	if request.AsyncProcessing {
 		return a.HandlerAsync(request, context)
