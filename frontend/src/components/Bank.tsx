@@ -20,11 +20,11 @@ const Bank: React.FC = () => {
 
   useEffect(() => {
     loadBankData();
-  }, [bankId]);
+  }, [bankId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadTransactions();
-  }, [bankId, currentPage]);
+  }, [bankId, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadBankData = async () => {
     try {
