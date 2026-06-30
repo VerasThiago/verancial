@@ -139,25 +139,15 @@ class ApiService {
   }
 
   async uploadStatement(request: UploadStatementRequest): Promise<void> {
-    // Get the current user token to extract user ID
-    const token = this.getToken();
-    if (!token) {
+    if (!this.isAuthenticated()) {
       throw new Error('No authentication token found');
     }
 
-    // Decode JWT token to get user ID (simple base64 decode of payload)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    
-    // Based on the Go JWT structure: JWTClaim has User field with ID
-    const userId = payload.User?.id;
-
-    if (!userId) {
-      console.error('JWT payload structure:', payload);
-      throw new Error('User ID not found in token. Expected User.id field.');
-    }
-
+    // The user ID is derived server-side from the authenticated request
+    // (Authorization header), never from client-supplied input. This avoids
+    // exposing/relying on JWT internals in the browser and prevents a
+    // malicious client from acting on another user's behalf.
     const reportRequest = {
-      userid: userId,
       filedata: request.fileData,
       filename: request.fileName,
       bankid: request.bankId,
