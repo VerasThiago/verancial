@@ -1,12 +1,14 @@
 package categoryguesser
 
 import (
+	_ "embed"
 	"encoding/json"
-	"log"
-	"os"
 	"regexp"
 	"strings"
 )
+
+//go:embed pre_defined_categories.json
+var predefinedCategoriesJSON []byte
 
 type PreDefinedCategory struct {
 	CategoryName string   `json:"CategoryName"`
@@ -14,15 +16,9 @@ type PreDefinedCategory struct {
 }
 
 func loadPreDefinedCategories() ([]*PreDefinedCategory, error) {
-	filePath := "pkg/category-guesser/pre_defined_categories.json"
-	jsonData, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Fatalf("Error reading file: %v", err)
-	}
-
 	var preDefinedCategories []*PreDefinedCategory
 
-	if err := json.Unmarshal(jsonData, &preDefinedCategories); err != nil {
+	if err := json.Unmarshal(predefinedCategoriesJSON, &preDefinedCategories); err != nil {
 		return nil, err
 	}
 
@@ -53,25 +49,20 @@ func isPreDefinedCategory(transactionName string) (bool, string) {
 	}
 
 	for _, category := range preDefinedCategories {
-		for _, payeeName := range (*category).PayeeNames {
+		for _, payeeName := range category.PayeeNames {
+			// Case 1: payee is longer — transaction is a prefix of the payee
+			// e.g. transaction "FITNESS WORLD GEORGIA" matches payee "FITNESS WORLD GEORGIA RICHMOND BC"
 			if strings.HasPrefix(payeeName, transactionName) {
-				return true, (*category).CategoryName
+				return true, category.CategoryName
 			}
-		}
-	}
-
-	splitedTransactionName := strings.Split(transactionName, " ")
-	for _, category := range preDefinedCategories {
-		for _, payeeName := range (*category).PayeeNames {
-			curr := ""
-			for idx := range splitedTransactionName {
-				curr += splitedTransactionName[idx]
-
-				if strings.HasPrefix(payeeName, curr) {
-					return true, (*category).CategoryName
+			// Case 2: single-word payee — transaction starts with payee at a word boundary
+			// e.g. transaction "VIRGIN PLUS VERDUN QC" matches payee "VIRGIN"
+			// Require word boundary (next char is space or end) to avoid "MARKET" matching "MARKETPLACE..."
+			if !strings.Contains(payeeName, " ") && strings.HasPrefix(transactionName, payeeName) {
+				rest := transactionName[len(payeeName):]
+				if rest == "" || rest[0] == ' ' {
+					return true, category.CategoryName
 				}
-
-				curr += " "
 			}
 		}
 	}
