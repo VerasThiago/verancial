@@ -3,7 +3,8 @@
         "CategoryName": "Credit Card",
         "PayeeNames": [
             "MB-CREDIT CARD/LOC PAY",
-            "Pagamento de fatura"
+            "Pagamento de fatura",
+            "FROM"
         ]
     },
     {
@@ -127,7 +128,6 @@
             "7-ELEVEN",
             "TIM HORTONS",
             "TREES CHEESE CAKE",
-            "MONZO BURGER",
             "RAZILIAN STEAKHOUSE",
             "SPAGHETTI",
             "MEMPHIS BLUES"
