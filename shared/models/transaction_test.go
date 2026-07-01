@@ -187,3 +187,23 @@ func TestTransactionMetadata_Scan(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestTransactionMetadata_Value(t *testing.T) {
+	t.Run("nil map returns nil", func(t *testing.T) {
+		var m TransactionMetadata
+		v, err := m.Value()
+		require.NoError(t, err)
+		assert.Nil(t, v)
+	})
+
+	t.Run("round-trips through Scan", func(t *testing.T) {
+		m := TransactionMetadata{"source": "csv"}
+
+		v, err := m.Value()
+		require.NoError(t, err)
+
+		var roundTripped TransactionMetadata
+		require.NoError(t, roundTripped.Scan(v))
+		assert.Equal(t, m, roundTripped)
+	})
+}

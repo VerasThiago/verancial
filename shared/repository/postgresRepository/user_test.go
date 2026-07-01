@@ -119,6 +119,22 @@ func TestPostgresRepository_UpdateUser(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
+	t.Run("leaves an empty password untouched (does not overwrite the stored hash)", func(t *testing.T) {
+		repo, mock := newMockRepository(t)
+
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "users" SET`).
+			WillReturnResult(sqlmock.NewResult(0, 1))
+		mock.ExpectCommit()
+
+		user := &models.User{ID: "user-1", Email: "new@example.com"}
+		err := repo.UpdateUser(user)
+
+		require.NoError(t, err)
+		assert.Empty(t, user.Password)
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
 	t.Run("not-found is translated to a DATA_NOT_FOUND error", func(t *testing.T) {
 		repo, mock := newMockRepository(t)
 

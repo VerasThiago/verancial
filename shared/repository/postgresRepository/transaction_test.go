@@ -160,6 +160,16 @@ func TestPostgresRepository_GetAllTransactionsFromUserBankAfterDate(t *testing.T
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestPostgresRepository_GetAllTransactionsFromUserBankAfterDate_Error(t *testing.T) {
+	repo, mock := newMockRepository(t)
+
+	mock.ExpectQuery(`SELECT \* FROM "transactions"`).WillReturnError(errBoom)
+
+	_, err := repo.GetAllTransactionsFromUserBankAfterDate("user-1", "bank-1", time.Now())
+
+	assert.Error(t, err)
+}
+
 func TestPostgresRepository_GetTransactions(t *testing.T) {
 	t.Run("without filter", func(t *testing.T) {
 		repo, mock := newMockRepository(t)
@@ -216,4 +226,14 @@ func TestPostgresRepository_GetTransactionCountFromUserBank(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 5, count)
 	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestPostgresRepository_GetTransactionCountFromUserBank_Error(t *testing.T) {
+	repo, mock := newMockRepository(t)
+
+	mock.ExpectQuery(`SELECT count\(\*\) FROM "transactions"`).WillReturnError(errBoom)
+
+	_, err := repo.GetTransactionCountFromUserBank("user-1", "bank-1")
+
+	assert.Error(t, err)
 }

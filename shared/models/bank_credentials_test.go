@@ -40,3 +40,23 @@ func TestBankCredentialsMap_Scan(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestBankCredentialsMap_Value(t *testing.T) {
+	t.Run("nil map returns nil", func(t *testing.T) {
+		var b BankCredentialsMap
+		v, err := b.Value()
+		require.NoError(t, err)
+		assert.Nil(t, v)
+	})
+
+	t.Run("round-trips through Scan", func(t *testing.T) {
+		b := BankCredentialsMap{constants.BudgetBakers: &BankCredentials{Login: "user@example.com", Password: "hunter2"}}
+
+		v, err := b.Value()
+		require.NoError(t, err)
+
+		var roundTripped BankCredentialsMap
+		require.NoError(t, roundTripped.Scan(v))
+		assert.Equal(t, b, roundTripped)
+	})
+}
