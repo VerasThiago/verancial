@@ -71,8 +71,7 @@ func (a *AppIntegrationHandler) HandlerSync(request AppIntegrationRequest, conte
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := a.GetHTTPClient().Do(req)
 	if err != nil {
 		return err
 	}

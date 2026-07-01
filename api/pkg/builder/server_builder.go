@@ -1,7 +1,11 @@
 package builder
 
 import (
+	"net/http"
+	"time"
+
 	shared "github.com/verasthiago/verancial/shared/flags"
+	"github.com/verasthiago/verancial/shared/httpclient"
 	"github.com/verasthiago/verancial/shared/repository"
 	postgresrepository "github.com/verasthiago/verancial/shared/repository/postgresRepository"
 	"github.com/verasthiago/verancial/shared/task"
@@ -13,6 +17,7 @@ type ServerBuilder struct {
 	*shared.SharedFlags
 	Repository repository.Repository
 	Task       task.Task
+	HTTPClient httpclient.HTTPClient
 	Log        *zap.Logger
 }
 
@@ -36,6 +41,10 @@ func (s *ServerBuilder) GetTask() task.Task {
 	return s.Task
 }
 
+func (s *ServerBuilder) GetHTTPClient() httpclient.HTTPClient {
+	return s.HTTPClient
+}
+
 func (s *ServerBuilder) InitBuilder(apiEnvFileConfig, sharedEnvFileConfig *shared.EnvFileConfig) Builder {
 	flags, err := new(Flags).InitFromViper(apiEnvFileConfig)
 	if err != nil {
@@ -57,6 +66,7 @@ func (s *ServerBuilder) InitBuilder(apiEnvFileConfig, sharedEnvFileConfig *share
 	s.Log = log
 	s.Task = new(task.AsyncQueue).InitFromFlags(s.SharedFlags)
 	s.Repository = new(postgresrepository.PostgresRepository).InitFromFlags(s.SharedFlags)
+	s.HTTPClient = httpclient.New(&http.Client{Timeout: 5 * time.Minute})
 
 	return s
 }

@@ -6,6 +6,8 @@ import (
 	"github.com/verasthiago/verancial/shared/models"
 )
 
+//go:generate mockgen -source=repository.go -destination=mocks/mock_repository.go -package=mocks
+
 type Repository interface {
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserByID(id string) (*models.User, error)

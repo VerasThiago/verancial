@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"github.com/verasthiago/verancial/app-integration-worker/pkg/generators"
 	shared "github.com/verasthiago/verancial/shared/flags"
 	"github.com/verasthiago/verancial/shared/repository"
 	postgresrepository "github.com/verasthiago/verancial/shared/repository/postgresRepository"
@@ -9,7 +10,8 @@ import (
 type ServerBuilder struct {
 	*shared.SharedFlags
 	*Flags
-	Repository repository.Repository
+	Repository                repository.Repository
+	AppReportGeneratorFactory generators.AppReportGeneratorFactory
 }
 
 func (s *ServerBuilder) GetFlags() *Flags {
@@ -22,6 +24,10 @@ func (s *ServerBuilder) GetSharedFlags() *shared.SharedFlags {
 
 func (s *ServerBuilder) GetRepository() repository.Repository {
 	return s.Repository
+}
+
+func (s *ServerBuilder) GetAppReportGeneratorFactory() generators.AppReportGeneratorFactory {
+	return s.AppReportGeneratorFactory
 }
 
 func (s *ServerBuilder) InitBuilder(appIntegrationEnvConfigFile, sharedEnvFileConfig *shared.EnvFileConfig) Builder {
@@ -38,6 +44,7 @@ func (s *ServerBuilder) InitBuilder(appIntegrationEnvConfigFile, sharedEnvFileCo
 
 	s.SharedFlags = sharedflags
 	s.Repository = new(postgresrepository.PostgresRepository).InitFromFlags(s.SharedFlags)
+	s.AppReportGeneratorFactory = generators.DefaultAppReportGeneratorFactory{}
 
 	return s
 }

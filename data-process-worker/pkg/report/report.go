@@ -12,12 +12,23 @@ import (
 	"github.com/verasthiago/verancial/shared/types"
 )
 
+//go:generate mockgen -source=report.go -destination=mocks/mock_report.go -package=mocks
+
 type BankReport interface {
 	LoadFromCSV(csvPath string) ([]interface{}, error)
 	Process(bankTransactions []interface{}, payload *types.ReportProcessQueuePayload, lastDbTransaction *models.Transaction) ([]*models.Transaction, error)
 }
 
-func GetReportProcessor(bankName constants.BankId) (BankReport, error) {
+// ReportProcessorFactory resolves the BankReport implementation for a given
+// bank. It is injected via the builder so handlers can be tested with a fake
+// factory instead of exercising every real bank parser.
+type ReportProcessorFactory interface {
+	GetReportProcessor(bankName constants.BankId) (BankReport, error)
+}
+
+type DefaultReportProcessorFactory struct{}
+
+func (DefaultReportProcessorFactory) GetReportProcessor(bankName constants.BankId) (BankReport, error) {
 	switch bankName {
 	case constants.ScotiaBank:
 		return scotiabank.ScotiaBankReportProcessor{}, nil

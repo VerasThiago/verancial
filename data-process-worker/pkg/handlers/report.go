@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
 	"github.com/verasthiago/verancial/data-process-worker/pkg/builder"
-	"github.com/verasthiago/verancial/data-process-worker/pkg/report"
 	"github.com/verasthiago/verancial/shared/constants"
 	"github.com/verasthiago/verancial/shared/models"
 	"github.com/verasthiago/verancial/shared/types"
@@ -57,7 +56,7 @@ func (c *CreateReportHandler) Execute(payload types.ReportProcessQueuePayload) e
 	var lastDbTransaction *models.Transaction
 
 	fmt.Printf("\n[1/7] Getting ReportProcessor for %s ...", payload.FilePath)
-	processor, err := report.GetReportProcessor(constants.BankId(payload.BankId))
+	processor, err := c.GetReportProcessorFactory().GetReportProcessor(constants.BankId(payload.BankId))
 	if err != nil {
 		fmt.Printf("Error line 41: %+v\n", err)
 		return err

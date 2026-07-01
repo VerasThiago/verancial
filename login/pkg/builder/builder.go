@@ -6,6 +6,8 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockgen -source=builder.go -destination=mocks/mock_builder.go -package=mocks
+
 type Builder interface {
 	GetRepository() repository.Repository
 	GetFlags() *Flags
