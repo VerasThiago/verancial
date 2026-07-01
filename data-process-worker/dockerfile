@@ -14,10 +14,14 @@ RUN cd data-process-worker && CGO_ENABLED=0 GOOS=linux go build -a -installsuffi
 
 FROM alpine
 
+RUN addgroup -S app && adduser -S app -G app
+
 COPY --from=build /go/bin/data-process-worker /app/
 COPY --from=build /app/data-process-worker/.env /app/.env
 COPY --from=build /app/shared/.env /app/shared/.env
 
 WORKDIR /app
+RUN chown -R app:app /app
+USER app
 
 CMD ["./data-process-worker"]

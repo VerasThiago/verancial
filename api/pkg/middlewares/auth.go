@@ -45,6 +45,7 @@ func (a *AuthUserHandler) Handler() gin.HandlerFunc {
 			return
 		}
 		context.Set("user", jwtClaim.User)
+		context.Set("userId", jwtClaim.User.ID)
 		context.Next()
 	}
 }

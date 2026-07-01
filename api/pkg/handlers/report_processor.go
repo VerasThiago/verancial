@@ -8,16 +8,39 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
+	"time"
 
 	"encoding/base64"
 
 	"github.com/gin-gonic/gin"
 	"github.com/verasthiago/verancial/api/pkg/builder"
+	"github.com/verasthiago/verancial/shared/auth"
 	"github.com/verasthiago/verancial/shared/types"
 )
 
+// unsafeFileNameChars matches anything that isn't alphanumeric, dot, dash or
+// underscore. Used to strip path separators / traversal sequences out of
+// client-supplied file names before they are used to build a filesystem path.
+var unsafeFileNameChars = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+
+// sanitizeFileName strips directory components and any character that isn't
+// safe for a flat file name, preventing path traversal (e.g. "../../etc/x")
+// when building the temp file path.
+func sanitizeFileName(name string) string {
+	name = filepath.Base(name)
+	name = unsafeFileNameChars.ReplaceAllString(name, "_")
+	if name == "" || name == "." || name == ".." {
+		name = "upload"
+	}
+	return name
+}
+
 type Request struct {
-	UserId          string `json:"userid"`
+	// UserId is intentionally not read from client input. It is derived
+	// from the authenticated JWT to prevent IDOR (a user uploading or
+	// processing a report on another user's behalf).
+	UserId          string `json:"-"`
 	FilePath        string `json:"filepath,omitempty"` // Used internally for DPW service
 	FileData        string `json:"filedata,omitempty"` // Base64 encoded CSV content from web uploads
 	FileName        string `json:"filename,omitempty"` // Original filename from web uploads
@@ -45,6 +68,13 @@ func (r *ReportProcessorHandler) Handler(context *gin.Context) error {
 		return err
 	}
 
+	userObj, _ := context.Get("user")
+	user, ok := userObj.(*auth.UserClaims)
+	if !ok || user == nil || user.ID == "" {
+		return fmt.Errorf("unauthorized")
+	}
+	request.UserId = user.ID
+
 	// Process the uploaded file
 	tempFilePath, err := r.handleFileUpload(request)
 	if err != nil {
@@ -69,12 +99,22 @@ func (r *ReportProcessorHandler) handleFileUpload(request Request) (string, erro
 		return "", fmt.Errorf("failed to decode file data: %v", err)
 	}
 
-	// Create temporary file
+	// Create temporary file. Both the user ID (from the authenticated JWT)
+	// and the file name (from client input) are sanitized to plain,
+	// flat-path-safe tokens before being joined onto tempDir, preventing
+	// path traversal via a crafted "filename" (e.g. "../../etc/passwd").
 	tempDir := os.TempDir()
-	tempFilePath := filepath.Join(tempDir, fmt.Sprintf("upload_%s_%s", request.UserId, request.FileName))
+	safeUserId := sanitizeFileName(request.UserId)
+	safeFileName := sanitizeFileName(request.FileName)
+	tempFilePath := filepath.Join(tempDir, fmt.Sprintf("upload_%s_%s", safeUserId, safeFileName))
+
+	// Defense in depth: ensure the resolved path is still inside tempDir.
+	if rel, err := filepath.Rel(tempDir, tempFilePath); err != nil || rel == ".." || len(rel) >= 2 && rel[:2] == ".." {
+		return "", fmt.Errorf("invalid file path")
+	}
 
 	// Write decoded data to temporary file
-	if err := ioutil.WriteFile(tempFilePath, fileData, 0644); err != nil {
+	if err := ioutil.WriteFile(tempFilePath, fileData, 0600); err != nil {
 		return "", fmt.Errorf("failed to write temporary file: %v", err)
 	}
 
@@ -120,7 +160,7 @@ func (r *ReportProcessorHandler) processSync(request Request, tempFilePath strin
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 5 * time.Minute}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/verasthiago/verancial/api/pkg/builder"
+	"github.com/verasthiago/verancial/shared/auth"
 	"github.com/verasthiago/verancial/shared/models"
 )
 
@@ -36,7 +37,10 @@ func (h *ListTransactionsHandler) InitFromBuilder(builder builder.Builder) *List
 
 func (h *ListTransactionsHandler) Handler(c *gin.Context) error {
 	userObj, _ := c.Get("user")
-	user, _ := userObj.(*models.User)
+	user, ok := userObj.(*auth.UserClaims)
+	if !ok || user == nil {
+		return fmt.Errorf("unauthorized")
+	}
 
 	var req ListTransactionsRequest
 	if err := c.ShouldBindUri(&req); err != nil {
