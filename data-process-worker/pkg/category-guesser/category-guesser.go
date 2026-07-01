@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 //go:embed pre_defined_categories.json
@@ -15,30 +16,44 @@ type PreDefinedCategory struct {
 	PayeeNames   []string `json:"PayeeNames"`
 }
 
+var (
+	whitespaceRegex = regexp.MustCompile(`\s+`)
+	nonWordRegex    = regexp.MustCompile(`[^\w\s]`)
+)
+
+var (
+	preDefinedCategoriesOnce      sync.Once
+	cachedPreDefinedCategories    []*PreDefinedCategory
+	cachedPreDefinedCategoriesErr error
+)
+
 func loadPreDefinedCategories() ([]*PreDefinedCategory, error) {
-	var preDefinedCategories []*PreDefinedCategory
+	preDefinedCategoriesOnce.Do(func() {
+		var preDefinedCategories []*PreDefinedCategory
 
-	if err := json.Unmarshal(predefinedCategoriesJSON, &preDefinedCategories); err != nil {
-		return nil, err
-	}
-
-	for i := range preDefinedCategories {
-		for j := range (*preDefinedCategories[i]).PayeeNames {
-			payeeName := (*preDefinedCategories[i]).PayeeNames[j]
-			(*preDefinedCategories[i]).PayeeNames[j] = preprocessText(payeeName)
+		if err := json.Unmarshal(predefinedCategoriesJSON, &preDefinedCategories); err != nil {
+			cachedPreDefinedCategoriesErr = err
+			return
 		}
-	}
 
-	return preDefinedCategories, nil
+		for i := range preDefinedCategories {
+			for j := range (*preDefinedCategories[i]).PayeeNames {
+				payeeName := (*preDefinedCategories[i]).PayeeNames[j]
+				(*preDefinedCategories[i]).PayeeNames[j] = preprocessText(payeeName)
+			}
+		}
+
+		cachedPreDefinedCategories = preDefinedCategories
+	})
+
+	return cachedPreDefinedCategories, cachedPreDefinedCategoriesErr
 }
 
 func preprocessText(inputText string) string {
 	processedText := strings.ToLower(inputText)
 	processedText = strings.TrimSpace(processedText)
-	re := regexp.MustCompile(`\s+`)
-	processedText = re.ReplaceAllString(processedText, " ")
-	re = regexp.MustCompile(`[^\w\s]`)
-	processedText = re.ReplaceAllString(processedText, "")
+	processedText = whitespaceRegex.ReplaceAllString(processedText, " ")
+	processedText = nonWordRegex.ReplaceAllString(processedText, "")
 	return processedText
 }
 

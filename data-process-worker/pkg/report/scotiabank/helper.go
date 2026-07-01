@@ -9,11 +9,15 @@ import (
 	"github.com/verasthiago/verancial/data-process-worker/pkg/models/scotiabank"
 )
 
+// spacesRegex is compiled once at package init instead of on every call to
+// ParseReportRecord, which previously recompiled it for every row of every
+// imported CSV statement.
+var spacesRegex = regexp.MustCompile(`\s+`)
+
 func (s ScotiaBankReportProcessor) ParseReportRecord(record []string) (*scotiabank.ScotiaBank, error) {
 	var err error
 	var date time.Time
 	var amount float32
-	var spacesRegex = regexp.MustCompile(`\s+`)
 
 	if date, err = time.Parse("2006-01-02", record[1]); err != nil {
 		return nil, err
@@ -35,7 +39,6 @@ func (s ScotiaBankCCReportProcessor) ParseReportRecord(record []string) (*scotia
 	var err error
 	var date time.Time
 	var amount float32
-	var spacesRegex = regexp.MustCompile(`\s+`)
 
 	if date, err = time.Parse("2006-01-02", record[1]); err != nil {
 		return nil, err
