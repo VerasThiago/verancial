@@ -1,0 +1,109 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    name: docker-compose stack + Postman/Newman
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate service .env files (docker deploy env)
+        # .env/ is gitignored (it's where real per-service secrets normally
+        # live) so these are generated fresh for the ephemeral e2e stack.
+        # Values point at the docker-compose service hostnames defined in
+        # e2e/docker-compose.e2e.yaml. JWT_KEY must match between api and
+        # login since login issues the token and api validates it.
+        run: |
+          set -eu
+          JWT_KEY="e2e-test-jwt-key-not-for-production"
+
+          mkdir -p shared/.env
+          cat > shared/.env/shared.docker.env <<EOF
+          APP_HOST=0.0.0.0
+          DB_HOST=e2e-postgres
+          DB_PORT=5432
+          DB_USER=postgres
+          DB_PASSWORD=postgres
+          DB_NAME=postgres
+          DB_SSLMODE=disable
+          DB_TIMEZONE=UTC
+          QUEUE_HOST=e2e-redis
+          QUEUE_PORT=6379
+          JWT_KEY=${JWT_KEY}
+          JWT_KEY_EMAIL=e2e-test-jwt-email-key-not-for-production
+          DPW_HOST=dpw
+          DPW_PORT=8080
+          AIW_HOST=aiw
+          AIW_PORT=8080
+          EOF
+
+          mkdir -p api/.env
+          cat > api/.env/api.docker.env <<EOF
+          API_PORT=8080
+          WEB_PORT=3000
+          EOF
+
+          mkdir -p login/.env
+          cat > login/.env/login.docker.env <<EOF
+          LOGIN_PORT=8080
+          EOF
+
+          mkdir -p data-process-worker/.env
+          cat > data-process-worker/.env/dpw.docker.env <<EOF
+          DPW_PORT=8080
+          ASYNC_PROCESSING=false
+          EOF
+
+          mkdir -p app-integration-worker/.env
+          cat > app-integration-worker/.env/aiw.docker.env <<EOF
+          AIW_PORT=8080
+          ASYNC_PROCESSING=false
+          EOF
+
+      - name: Build and start the e2e stack
+        working-directory: e2e
+        run: docker compose -f docker-compose.e2e.yaml up --build -d
+
+      - name: Wait for login and api to accept connections
+        run: |
+          set -eu
+          for addr in "http://localhost:8081/login/v0/user/signin" "http://localhost:8080/api/v0/hello"; do
+            echo "Waiting for $addr..."
+            for i in $(seq 1 60); do
+              # Any HTTP response (even 4xx) means the service is up; curl
+              # exit code 7 means connection refused (not ready yet).
+              if curl -s -o /dev/null -m 2 "$addr"; then
+                echo "$addr is up"
+                break
+              fi
+              if [ "$i" -eq 60 ]; then
+                echo "$addr did not become ready in time"
+                docker compose -f e2e/docker-compose.e2e.yaml logs
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      - name: Run Postman collection via Newman
+        run: |
+          npx --yes newman run Verancial.postman_collection.json \
+            -e e2e/postman_environment.json \
+            --bail
+
+      - name: Dump service logs
+        if: always()
+        run: docker compose -f e2e/docker-compose.e2e.yaml logs
+
+      - name: Tear down
+        if: always()
+        working-directory: e2e
+        run: docker compose -f docker-compose.e2e.yaml down -v
