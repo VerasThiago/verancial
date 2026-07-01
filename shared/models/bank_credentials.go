@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 
@@ -30,11 +31,22 @@ func (b *BankCredentialsMap) Scan(value interface{}) error {
 	}
 	*b = make(BankCredentialsMap)
 	for k, v := range m {
-		fc := BankCredentials{
-			Login:    v["login"].(string),
-			Password: v["password"].(string),
+		login, loginOk := v["login"].(string)
+		password, passwordOk := v["password"].(string)
+		if !loginOk || !passwordOk {
+			return fmt.Errorf("BankCredentialsMap.Scan: entry %q missing string login/password", k)
 		}
-		(*b)[constants.AppID(k)] = &fc
+		(*b)[constants.AppID(k)] = &BankCredentials{Login: login, Password: password}
 	}
 	return nil
+}
+
+// Value implements driver.Valuer so BankCredentialsMap round-trips through
+// database/sql on its own (pairing the Scan above), rather than relying on
+// the Postgres driver's jsonb-specific encoding fallback.
+func (b BankCredentialsMap) Value() (driver.Value, error) {
+	if b == nil {
+		return nil, nil
+	}
+	return json.Marshal(b)
 }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"crypto/sha256"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -43,6 +44,16 @@ func (t *TransactionMetadata) Scan(value interface{}) error {
 		return fmt.Errorf("TransactionMetadata.Scan: unsupported value type %T", value)
 	}
 	return json.Unmarshal(b, t)
+}
+
+// Value implements driver.Valuer so TransactionMetadata round-trips through
+// database/sql on its own (pairing the Scan above), rather than relying on
+// the Postgres driver's jsonb-specific encoding fallback.
+func (t TransactionMetadata) Value() (driver.Value, error) {
+	if t == nil {
+		return nil, nil
+	}
+	return json.Marshal(t)
 }
 
 func (t *Transaction) SetFingerprint() {
