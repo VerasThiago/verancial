@@ -1,6 +1,6 @@
 module github.com/verasthiago/verancial/login
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/gin-gonic/gin v1.8.1
@@ -12,6 +12,7 @@ require (
 require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
+	go.uber.org/mock v0.6.0 // indirect
 	gorm.io/gorm v1.23.8 // indirect
 )
 

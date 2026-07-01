@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"time"
 
 	"encoding/base64"
 
@@ -160,8 +159,7 @@ func (r *ReportProcessorHandler) processSync(request Request, tempFilePath strin
 
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 5 * time.Minute}
-	resp, err := client.Do(req)
+	resp, err := r.GetHTTPClient().Do(req)
 	if err != nil {
 		return err
 	}

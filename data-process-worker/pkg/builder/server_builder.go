@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"github.com/verasthiago/verancial/data-process-worker/pkg/report"
 	shared "github.com/verasthiago/verancial/shared/flags"
 	"github.com/verasthiago/verancial/shared/repository"
 	postgresrepository "github.com/verasthiago/verancial/shared/repository/postgresRepository"
@@ -9,7 +10,8 @@ import (
 type ServerBuilder struct {
 	*Flags
 	*shared.SharedFlags
-	Repository repository.Repository
+	Repository              repository.Repository
+	ReportProcessorFactory  report.ReportProcessorFactory
 }
 
 func (s *ServerBuilder) GetFlags() *Flags {
@@ -22,6 +24,10 @@ func (s *ServerBuilder) GetSharedFlags() *shared.SharedFlags {
 
 func (s *ServerBuilder) GetRepository() repository.Repository {
 	return s.Repository
+}
+
+func (s *ServerBuilder) GetReportProcessorFactory() report.ReportProcessorFactory {
+	return s.ReportProcessorFactory
 }
 
 func (s *ServerBuilder) InitBuilder(dataProcessEnvConfigFile, sharedEnvFileConfig *shared.EnvFileConfig) Builder {
@@ -38,6 +44,7 @@ func (s *ServerBuilder) InitBuilder(dataProcessEnvConfigFile, sharedEnvFileConfi
 
 	s.SharedFlags = sharedflags
 	s.Repository = new(postgresrepository.PostgresRepository).InitFromFlags(s.SharedFlags)
+	s.ReportProcessorFactory = report.DefaultReportProcessorFactory{}
 
 	return s
 }

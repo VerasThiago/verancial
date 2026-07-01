@@ -72,7 +72,7 @@ func (a *AppIntegrationHandler) Execute(payload types.AppIntegrationQueuePayload
 	}
 
 	fmt.Printf("[2/7] Geting AppReportGenerator...\n")
-	if generator, err = generators.GetAppReportGenerator(payload.AppID); err != nil {
+	if generator, err = a.GetAppReportGeneratorFactory().GetAppReportGenerator(payload.AppID); err != nil {
 		fmt.Printf("\nerr line 56 %+v\n", err)
 		return err
 	}
