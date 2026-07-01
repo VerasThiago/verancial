@@ -59,6 +59,31 @@ jobs:
             echo "No coverage.out generated for ${{ matrix.module }}"
           fi
 
+      - name: Enforce 90% coverage gate
+        working-directory: ${{ matrix.module }}
+        run: |
+          set -eu
+          if [ ! -f coverage.out ]; then
+            echo "No coverage.out generated for ${{ matrix.module }}"
+            exit 1
+          fi
+
+          # Generated mocks (go.uber.org/mock output, no logic of our own to
+          # test) and pure process-bootstrap glue (cmd/server/main.go, the
+          # top-level main.go) are excluded from the gate -- they're either
+          # not ours to test or require a live DB/HTTP listener to exercise,
+          # which is out of scope for unit tests. Everything else counts.
+          awk 'NR==1 || ($0 !~ /\/mocks\// && $0 !~ /\/cmd\/server\// && $0 !~ /\/main\.go:/)' \
+            coverage.out > coverage.filtered.out
+
+          THRESHOLD=90
+          COVERAGE=$(go tool cover -func=coverage.filtered.out | tail -1 | grep -oE '[0-9]+\.[0-9]+')
+
+          echo "Filtered coverage for ${{ matrix.module }}: ${COVERAGE}% (threshold: ${THRESHOLD}%)"
+
+          awk -v cov="$COVERAGE" -v threshold="$THRESHOLD" 'BEGIN { exit !(cov >= threshold) }' \
+            || { echo "Coverage ${COVERAGE}% is below the ${THRESHOLD}% threshold"; exit 1; }
+
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4

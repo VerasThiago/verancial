@@ -42,12 +42,12 @@ jobs:
             echo "No 'lint' script defined in package.json, skipping."
           fi
 
-      - name: Test
+      - name: Test (with 90% coverage gate)
         env:
           CI: true
         run: |
           if node -e "const s=require('./package.json').scripts||{}; process.exit(s.test ? 0 : 1)"; then
-            npm test -- --passWithNoTests
+            npm test -- --coverage --watchAll=false
           else
             echo "No 'test' script defined in package.json, skipping."
           fi
