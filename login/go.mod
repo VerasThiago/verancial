@@ -5,14 +5,17 @@ go 1.23.0
 require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/spf13/viper v1.12.0
+	github.com/stretchr/testify v1.11.1
 	github.com/thedevsaddam/govalidator v1.9.10
+	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	go.uber.org/mock v0.6.0 // indirect
 	gorm.io/gorm v1.23.8 // indirect
 )
 
