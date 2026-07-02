@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	buildermocks "github.com/verasthiago/verancial/api/pkg/builder/mocks"
 	"github.com/verasthiago/verancial/api/pkg/testutil"
+	sharederrors "github.com/verasthiago/verancial/shared/errors"
 	"github.com/verasthiago/verancial/shared/models"
 	repomocks "github.com/verasthiago/verancial/shared/repository/mocks"
 	"go.uber.org/mock/gomock"
@@ -122,7 +123,15 @@ func TestBankStatsHandler_Handler(t *testing.T) {
 		assert.Contains(t, err.Error(), "bankId is required")
 	})
 
-	t.Run("GetBankAccountById error is propagated (not found path)", func(t *testing.T) {
+	t.Run("GetBankAccountById error is propagated unwrapped, preserving its status code", func(t *testing.T) {
+		// Regression test: the handler used to wrap this error with
+		// fmt.Errorf("failed to get bank account: %v", err), which stringifies
+		// the repository's structured errors.GenericError (Code: 404) into a
+		// plain error -- shared/errors.ErrorRoute's recoveryHandler can only
+		// preserve the 404 if the GenericError type itself reaches it
+		// unwrapped, otherwise it falls through to a generic 500. Caught for
+		// real by the e2e suite hitting an actual "bank not connected" 500
+		// instead of the expected 404.
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -131,9 +140,14 @@ func TestBankStatsHandler_Handler(t *testing.T) {
 
 		userID := "user-1"
 		bankID := "missing-bank"
+		notFoundErr := sharederrors.GenericError{
+			Code:    sharederrors.STATUS_NOT_FOUND,
+			Type:    sharederrors.DATA_NOT_FOUND.Type,
+			Message: sharederrors.DATA_NOT_FOUND.Message,
+		}
 
 		mockBuilder.EXPECT().GetRepository().Return(mockRepo).AnyTimes()
-		mockRepo.EXPECT().GetBankAccountById(bankID, userID).Return(nil, fmt.Errorf("record not found"))
+		mockRepo.EXPECT().GetBankAccountById(bankID, userID).Return(nil, notFoundErr)
 
 		c, _ := testutil.NewGinContext("GET", "/api/v0/bank/"+bankID, nil, "")
 		c.Params = gin.Params{{Key: "bankId", Value: bankID}}
@@ -143,7 +157,11 @@ func TestBankStatsHandler_Handler(t *testing.T) {
 		err := handler.Handler(c)
 
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to get bank account")
+		assert.Equal(t, notFoundErr, err, "the exact GenericError must be returned unwrapped, not re-stringified")
+
+		var genericErr sharederrors.GenericError
+		require.ErrorAs(t, err, &genericErr)
+		assert.EqualValues(t, sharederrors.STATUS_NOT_FOUND, genericErr.Code)
 	})
 
 	t.Run("GetLastTransactionFromUserBank error is propagated", func(t *testing.T) {
