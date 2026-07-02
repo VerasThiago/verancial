@@ -32,7 +32,10 @@ func (s *Server) Run() error {
 	return s.RunSync()
 }
 
-func (s *Server) RunSync() error {
+// SetupRouter builds the gin engine with every route registered, without
+// binding a listener. Split out from RunSync so route wiring can be
+// exercised with httptest instead of a real network listener.
+func (s *Server) SetupRouter() *gin.Engine {
 	app := gin.Default()
 	api := app.Group("/aiw")
 	{
@@ -41,11 +44,19 @@ func (s *Server) RunSync() error {
 			apiV0.POST("process_app_report", errors.ErrorRoute(s.AppIntegrationAPI.HandlerSync))
 		}
 	}
-
-	return app.Run(":" + s.GetFlags().Port)
+	return app
 }
 
-func (s *Server) RunAsync() error {
+func (s *Server) RunSync() error {
+	return s.SetupRouter().Run(":" + s.GetFlags().Port)
+}
+
+// SetupAsyncWorker builds the asynq server and mux with every task handler
+// registered, without starting the (blocking) processing loop. Split out
+// from RunAsync so the wiring -- which queue config, which task pattern
+// maps to which handler -- can be exercised without a real Redis and
+// without blocking forever.
+func (s *Server) SetupAsyncWorker() (*asynq.Server, *asynq.ServeMux) {
 	dsn := fmt.Sprintf("%+v:%+v", s.GetSharedFlags().QueueHost, s.GetSharedFlags().QueuePort)
 	redisConnection := asynq.RedisClientOpt{
 		Addr: dsn,
@@ -67,5 +78,10 @@ func (s *Server) RunAsync() error {
 		s.AppIntegrationAPI.HandlerAsync,
 	)
 
+	return worker, mux
+}
+
+func (s *Server) RunAsync() error {
+	worker, mux := s.SetupAsyncWorker()
 	return worker.Run(mux)
 }
