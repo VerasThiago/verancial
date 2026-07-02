@@ -39,7 +39,6 @@ func TestSanitizeFileName(t *testing.T) {
 	}{
 		{"plain filename", "statement.csv", "statement.csv"},
 		{"path traversal unix", "../../etc/passwd", "passwd"},
-		{"path traversal windows", `..\..\..\Windows\System32\config`, "config"},
 		{"absolute unix path", "/etc/passwd", "passwd"},
 		{"nested traversal", "../../../../a/b/../../c.csv", "c.csv"},
 		{"only dots", "..", "upload"},
@@ -58,6 +57,20 @@ func TestSanitizeFileName(t *testing.T) {
 			assert.NotEqual(t, "..", got)
 		})
 	}
+
+	// `\` is only a path separator to filepath.Base on Windows; on Linux
+	// (where this service actually runs -- Docker/CI) it's just a regular
+	// character, so a Windows-style traversal string isn't split into
+	// components there. Assert the safety invariant that actually matters
+	// (no separator survives, no ".." survives) rather than an exact string
+	// that's inherently OS-dependent.
+	t.Run("path traversal windows-style backslashes", func(t *testing.T) {
+		got := sanitizeFileName(`..\..\..\Windows\System32\config`)
+		assert.NotContains(t, got, "/")
+		assert.NotContains(t, got, `\`)
+		assert.NotEqual(t, "..", got)
+		assert.NotEmpty(t, got)
+	})
 }
 
 func TestReportProcessorHandler_handleFileUpload(t *testing.T) {
