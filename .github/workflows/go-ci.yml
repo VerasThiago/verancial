@@ -69,11 +69,12 @@ jobs:
           fi
 
           # Generated mocks (go.uber.org/mock output, no logic of our own to
-          # test) and pure process-bootstrap glue (cmd/server/main.go, the
-          # top-level main.go) are excluded from the gate -- they're either
-          # not ours to test or require a live DB/HTTP listener to exercise,
-          # which is out of scope for unit tests. Everything else counts.
-          awk 'NR==1 || ($0 !~ /\/mocks\// && $0 !~ /\/cmd\/server\// && $0 !~ /\/main\.go:/)' \
+          # test), pure process-bootstrap glue (cmd/server/main.go, the
+          # top-level main.go), and shared/scripts (//go:build mage CLI
+          # migration tools that panic without a live DB) are excluded from
+          # the gate -- none of it is application logic we can meaningfully
+          # unit test. Everything else counts.
+          awk 'NR==1 || ($0 !~ /\/mocks\// && $0 !~ /\/cmd\/server\// && $0 !~ /\/main\.go:/ && $0 !~ /\/scripts\//)' \
             coverage.out > coverage.filtered.out
 
           THRESHOLD=90
