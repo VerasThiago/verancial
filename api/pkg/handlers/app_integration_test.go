@@ -227,9 +227,10 @@ func TestAppIntegrationHandler_HandlerSync(t *testing.T) {
 		assert.Equal(t, "http://aiw-host:9100/aiw/v0/process_app_report", gotURL)
 		assert.Equal(t, "application/json", gotContentType)
 
-		var sentReq AppIntegrationRequest
+		var sentReq types.AppIntegrationQueuePayload
 		require.NoError(t, json.Unmarshal(gotBody, &sentReq))
-		assert.Equal(t, "budgetbakers", sentReq.AppID)
+		assert.Equal(t, "user-1", sentReq.UserId, "UserId must reach AIW -- it's tagged json:\"-\" on the local AppIntegrationRequest type (to stop a spoofed UserId in the inbound client body), so the outbound payload must NOT reuse that type or UserId silently vanishes")
+		assert.Equal(t, constants.AppID("budgetbakers"), sentReq.AppID)
 		assert.Equal(t, "bank-1", sentReq.BankId)
 	})
 

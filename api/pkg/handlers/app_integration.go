@@ -58,7 +58,20 @@ func (a *AppIntegrationHandler) Handler(context *gin.Context) error {
 }
 
 func (a *AppIntegrationHandler) HandlerSync(request AppIntegrationRequest, context *gin.Context) error {
-	jsonData, err := json.Marshal(request)
+	// Built from types.AppIntegrationQueuePayload (not the local
+	// AppIntegrationRequest type) because AppIntegrationRequest.UserId is
+	// tagged `json:"-"` -- correct for the inbound client request (prevents
+	// a spoofed UserId in the JSON body), but it would silently drop UserId
+	// from this outbound call to AIW if reused here. Same class of bug as
+	// report_processor.go's processSync.
+	aiwRequest := types.AppIntegrationQueuePayload{
+		UserId:              request.UserId,
+		AppID:               constants.AppID(request.AppID),
+		BankId:              request.BankId,
+		LastTransactionDate: request.LastTransactionData,
+	}
+
+	jsonData, err := json.Marshal(aiwRequest)
 	if err != nil {
 		return err
 	}
