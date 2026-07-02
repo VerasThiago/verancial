@@ -19,7 +19,7 @@ RUN addgroup -S app && adduser -S app -G app
 
 COPY --from=build /go/bin/app-integration-worker /app/
 COPY --from=build /app/app-integration-worker/.env /app/.env
-COPY --from=build /app/shared/.env /app/shared/.env
+COPY --from=build --chown=app:app /app/shared/.env /shared/.env
 
 WORKDIR /app
 RUN chown -R app:app /app
