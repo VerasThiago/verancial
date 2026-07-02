@@ -1,5 +1,3 @@
-version: '3'
-
 # Self-contained stack for e2e testing: real Postgres (migrations applied on
 # boot), real Redis, and all four Go services wired together over HTTP/queue
 # exactly as they run in production. api/login/dpw/aiw run in sync mode so
@@ -42,6 +40,8 @@ services:
     build:
       context: ..
       dockerfile: login/dockerfile
+    environment:
+      - VERANCIAL_DEPLOY_ENV=docker
     depends_on:
       e2e-postgres:
         condition: service_healthy
@@ -52,6 +52,8 @@ services:
     build:
       context: ..
       dockerfile: api/dockerfile
+    environment:
+      - VERANCIAL_DEPLOY_ENV=docker
     depends_on:
       e2e-postgres:
         condition: service_healthy
@@ -68,6 +70,8 @@ services:
     build:
       context: ..
       dockerfile: data-process-worker/dockerfile
+    environment:
+      - VERANCIAL_DEPLOY_ENV=docker
     depends_on:
       e2e-postgres:
         condition: service_healthy
@@ -78,6 +82,8 @@ services:
     build:
       context: ..
       dockerfile: app-integration-worker/dockerfile
+    environment:
+      - VERANCIAL_DEPLOY_ENV=docker
     depends_on:
       e2e-postgres:
         condition: service_healthy

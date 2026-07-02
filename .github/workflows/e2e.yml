@@ -75,7 +75,7 @@ jobs:
       - name: Wait for login and api to accept connections
         run: |
           set -eu
-          for addr in "http://localhost:8081/login/v0/user/signin" "http://localhost:8080/api/v0/hello"; do
+          for addr in "http://localhost:8081/login/v0/user/signin" "http://localhost:8080/api/v0/dashboard/user"; do
             echo "Waiting for $addr..."
             for i in $(seq 1 60); do
               # Any HTTP response (even 4xx) means the service is up; curl
