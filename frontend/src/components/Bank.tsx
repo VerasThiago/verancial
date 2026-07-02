@@ -31,6 +31,7 @@ const Bank: React.FC = () => {
       setIsLoading(true);
       const bank = await apiService.getBankStats(bankId!);
       setBankData(bank);
+      setError(null);
     } catch (err: any) {
       setError('Failed to load bank data. Please try again.');
       console.error('Bank data error:', err);

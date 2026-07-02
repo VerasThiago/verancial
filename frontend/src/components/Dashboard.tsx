@@ -18,6 +18,7 @@ const Dashboard: React.FC = () => {
       setIsLoading(true);
       const stats = await apiService.getDashboardStats();
       setDashboardStats(stats);
+      setError(null);
     } catch (err: any) {
       setError('Failed to load dashboard data. Please try again.');
       console.error('Dashboard error:', err);

@@ -49,7 +49,10 @@ func (s *Server) RunAsync() error {
 	return worker.Run(mux)
 }
 
-func (s *Server) RunSync() error {
+// SetupRouter builds the gin engine with every route registered, without
+// binding a listener. Split out from RunSync so route wiring can be
+// exercised with httptest instead of a real network listener.
+func (s *Server) SetupRouter() *gin.Engine {
 	app := gin.Default()
 	api := app.Group("/dpw")
 	{
@@ -58,8 +61,11 @@ func (s *Server) RunSync() error {
 			apiV0.POST("process_report", errors.ErrorRoute(s.ReportCreateAPI.HandlerSync))
 		}
 	}
+	return app
+}
 
-	return app.Run(":" + s.GetFlags().Port)
+func (s *Server) RunSync() error {
+	return s.SetupRouter().Run(":" + s.GetFlags().Port)
 }
 
 func (s *Server) Run() error {

@@ -13,10 +13,25 @@
 					"name": "Sign Up",
 					"event": [
 						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set(\"E2E_EMAIL\", `e2e-${Date.now()}-${Math.floor(Math.random() * 100000)}@example.com`);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
 							"listen": "test",
 							"script": {
 								"exec": [
+									"pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
 									"var jsonData = pm.response.json();",
+									"pm.test(\"response contains an id and token\", () => {",
+									"    pm.expect(jsonData.id).to.be.a(\"string\").and.not.empty;",
+									"    pm.expect(jsonData.token).to.be.a(\"string\").and.not.empty;",
+									"});",
+									"pm.globals.set(\"USER_ID\", jsonData.id);",
 									"pm.globals.set(\"EMAIL_TOKEN\", jsonData.token);"
 								],
 								"type": "text/javascript"
@@ -28,7 +43,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"thiago\",\r\n    \"username\": \"thiago\",\r\n    \"email\": \"thiago.wortnnes@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"raw": "{\r\n    \"name\": \"e2e test user\",\r\n    \"email\": \"{{E2E_EMAIL}}\",\r\n    \"password\": \"correct-horse-battery-staple\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -57,7 +72,11 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
 									"var jsonData = pm.response.json();\r",
+									"pm.test(\"response contains a token\", () => {",
+									"    pm.expect(jsonData.token).to.be.a(\"string\").and.not.empty;",
+									"});",
 									"pm.globals.set(\"TOKEN\", jsonData.token);"
 								],
 								"type": "text/javascript"
@@ -69,7 +88,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"thiago.wortnnes@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"raw": "{\r\n    \"email\": \"{{E2E_EMAIL}}\",\r\n    \"password\": \"correct-horse-battery-staple\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -92,7 +111,18 @@
 					"response": []
 				},
 				{
-					"name": "Update",
+					"name": "Update (rejected: not admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status is 401 (fresh signups aren't admin)\", () => pm.response.to.have.status(401));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "PUT",
 						"header": [
@@ -104,7 +134,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"ec3fca09-cdb1-4822-a7b3-3218c7f44d67\",\r\n    \"email\": \"aa@gmail.com\"\r\n}",
+							"raw": "{\r\n    \"id\": \"{{USER_ID}}\",\r\n    \"email\": \"changed@example.com\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -127,13 +157,13 @@
 					"response": []
 				},
 				{
-					"name": "Delete",
+					"name": "Delete (rejected: not admin)",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									""
+									"pm.test(\"status is 401 (fresh signups aren't admin)\", () => pm.response.to.have.status(401));"
 								],
 								"type": "text/javascript"
 							}
@@ -150,7 +180,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"ec3fca09-cdb1-4822-a7b3-3218c7f44d67\"\r\n}",
+							"raw": "{\r\n    \"id\": \"{{USER_ID}}\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -178,7 +208,22 @@
 			"name": "API",
 			"item": [
 				{
-					"name": "New Request",
+					"name": "Dashboard - empty before any report is processed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"no bank accounts connected yet\", () => {",
+									"    pm.expect(jsonData.data.total_bank_accounts).to.eql(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [
@@ -189,14 +234,189 @@
 							}
 						],
 						"url": {
-							"raw": "{{API_ADDRESS}}/api/v0/hello",
+							"raw": "{{API_ADDRESS}}/api/v0/dashboard/user",
 							"host": [
 								"{{API_ADDRESS}}"
 							],
 							"path": [
 								"api",
 								"v0",
-								"hello"
+								"dashboard",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report Process (sync) - Scotiabank CSV -> api -> dpw -> Postgres",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"filedata\": \"MTAwMSwyMDI0LTAxLTE1LEdST0NFUlkgU1RPUkUgUFVSQ0hBU0UsTWV0cm8gRm9vZHMscmVmMSwtNDUuNjcKMTAwMiwyMDI0LTAxLTE2LENPRkZFRSBTSE9QLFN0YXJidWNrcyxyZWYyLC01LjI1Cg==\",\r\n    \"filename\": \"statement.csv\",\r\n    \"bankid\": \"92f1aff9-03ae-4e6e-bde2-7799e849d181\",\r\n    \"asyncprocessing\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_ADDRESS}}/api/v0/report/process",
+							"host": [
+								"{{API_ADDRESS}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"report",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transaction List - Scotiabank (proves dpw's writes landed in Postgres)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"both CSV rows were parsed, categorized, and persisted\", () => {",
+									"    pm.expect(jsonData.data).to.have.lengthOf(2);",
+									"    const payees = jsonData.data.map((t) => t.payee);",
+									"    pm.expect(payees).to.include(\"Metro Foods\");",
+									"    pm.expect(payees).to.include(\"Starbucks\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_ADDRESS}}/api/v0/transaction/list/92f1aff9-03ae-4e6e-bde2-7799e849d181",
+							"host": [
+								"{{API_ADDRESS}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"transaction",
+								"list",
+								"92f1aff9-03ae-4e6e-bde2-7799e849d181"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bank Stats - not connected (no user_bank_accounts row exists)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status is 404 (bank isn't connected to this user)\", () => pm.response.to.have.status(404));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_ADDRESS}}/api/v0/bank/92f1aff9-03ae-4e6e-bde2-7799e849d181",
+							"host": [
+								"{{API_ADDRESS}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"bank",
+								"92f1aff9-03ae-4e6e-bde2-7799e849d181"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "App Integration Generate (sync) - api -> aiw -> BudgetBakers export",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"appid\": \"9f3df639-5d19-4d4d-baeb-9e9742107617\",\r\n    \"bankid\": \"92f1aff9-03ae-4e6e-bde2-7799e849d181\",\r\n    \"lasttransactiondate\": \"January 1 2020\",\r\n    \"asyncprocessing\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_ADDRESS}}/api/v0/app-integration/generate",
+							"host": [
+								"{{API_ADDRESS}}"
+							],
+							"path": [
+								"api",
+								"v0",
+								"app-integration",
+								"generate"
 							]
 						}
 					},

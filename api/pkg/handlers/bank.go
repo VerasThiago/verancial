@@ -38,7 +38,7 @@ func (h *BankStatsHandler) Handler(context *gin.Context) error {
 
 	bankAccount, err := h.GetRepository().GetBankAccountById(bankId, user.ID)
 	if err != nil {
-		return fmt.Errorf("failed to get bank account: %v", err)
+		return err
 	}
 
 	lastTransaction, err := h.GetRepository().GetLastTransactionFromUserBank(user.ID, string(bankId))

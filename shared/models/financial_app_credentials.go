@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 
@@ -34,4 +35,14 @@ func (f *FinancialAppCredentialsMap) Scan(value interface{}) error {
 		(*f)[constants.AppID(k)] = &v
 	}
 	return nil
+}
+
+// Value implements driver.Valuer so FinancialAppCredentialsMap round-trips
+// through database/sql on its own (pairing the Scan above), rather than
+// relying on the Postgres driver's jsonb-specific encoding fallback.
+func (f FinancialAppCredentialsMap) Value() (driver.Value, error) {
+	if f == nil {
+		return nil, nil
+	}
+	return json.Marshal(f)
 }
