@@ -63,6 +63,15 @@ services:
         condition: service_started
       aiw:
         condition: service_started
+    # api's report_processor handler writes the uploaded CSV to
+    # os.TempDir() (/tmp) and, in sync mode, tells dpw to read it back by
+    # path over HTTP -- dpw is a *separate* container, so without a shared
+    # volume it can never see that file. Mount the same volume at /tmp on
+    # both so the handoff actually works, matching how these two would need
+    # to be deployed together outside Docker Compose too (shared storage,
+    # not just a shared network).
+    volumes:
+      - report-uploads:/tmp
     ports:
       - "8080:8080"
 
@@ -75,6 +84,8 @@ services:
     depends_on:
       e2e-postgres:
         condition: service_healthy
+    volumes:
+      - report-uploads:/tmp
     ports:
       - "8082:8080"
 
@@ -89,3 +100,6 @@ services:
         condition: service_healthy
     ports:
       - "8083:8080"
+
+volumes:
+  report-uploads:
