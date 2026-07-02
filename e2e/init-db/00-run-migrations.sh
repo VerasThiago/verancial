@@ -12,7 +12,8 @@ for f in \
   002_create_bank_accounts.sql \
   004_user_bank_accounts_rls_hardening.sql \
   005_add_missing_indexes.sql \
-  006_add_transaction_fingerprint.sql
+  006_add_transaction_fingerprint.sql \
+  007_fix_transactions_bank_id_type.sql
 do
   echo "Applying $f..."
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f "$MIGRATIONS_DIR/$f"
