@@ -208,42 +208,6 @@
 			"name": "API",
 			"item": [
 				{
-					"name": "Hello (auth smoke test)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{TOKEN}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{API_ADDRESS}}/api/v0/hello",
-							"host": [
-								"{{API_ADDRESS}}"
-							],
-							"path": [
-								"api",
-								"v0",
-								"hello"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Dashboard - empty before any report is processed",
 					"event": [
 						{

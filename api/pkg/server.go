@@ -34,8 +34,11 @@ func (s *Server) InitFromBuilder(builder builder.Builder) *Server {
 	return s
 }
 
-func (s *Server) Run() error {
-
+// SetupRouter builds the gin engine with every route registered, without
+// binding a listener. Split out from Run so route wiring (paths, methods,
+// which routes require auth) can be exercised with httptest instead of a
+// real network listener.
+func (s *Server) SetupRouter() *gin.Engine {
 	app := gin.Default()
 	api := app.Group("/api")
 	{
@@ -67,5 +70,9 @@ func (s *Server) Run() error {
 			}
 		}
 	}
-	return app.Run(":" + s.GetFlags().Port)
+	return app
+}
+
+func (s *Server) Run() error {
+	return s.SetupRouter().Run(":" + s.GetFlags().Port)
 }

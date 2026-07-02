@@ -138,12 +138,15 @@ func (r *ReportProcessorHandler) processSync(request Request, tempFilePath strin
 	// Clean up temporary file after processing
 	defer os.Remove(tempFilePath)
 
-	// Prepare request for DPW service
-	dpwRequest := Request{
-		UserId:          request.UserId,
-		FilePath:        tempFilePath,
-		BankId:          request.BankId,
-		AsyncProcessing: false,
+	// Prepare request for DPW service. Built from types.ReportProcessQueuePayload
+	// (not the local Request type) because Request.UserId is tagged `json:"-"`
+	// -- correct for the inbound client request (prevents a spoofed UserId in
+	// the JSON body), but it would silently drop UserId from this outbound
+	// call to DPW if reused here.
+	dpwRequest := types.ReportProcessQueuePayload{
+		UserId:   request.UserId,
+		FilePath: tempFilePath,
+		BankId:   request.BankId,
 	}
 
 	jsonData, err := json.Marshal(dpwRequest)

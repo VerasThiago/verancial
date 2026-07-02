@@ -5,26 +5,29 @@ go 1.23.0
 require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/spf13/viper v1.12.0
+	github.com/stretchr/testify v1.11.1
 	github.com/thedevsaddam/govalidator v1.9.10
+	go.uber.org/mock v0.6.0
 )
 
 require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-redis/redis/v8 v8.11.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hibiken/asynq v0.24.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	go.uber.org/mock v0.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gorm.io/gorm v1.23.8 // indirect
 )
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/uuid v1.3.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
